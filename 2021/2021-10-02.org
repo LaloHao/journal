@@ -1,0 +1,37 @@
+#+TITLE: sábado 02 de octubre 2021, semana 39
+* 01:15 Tag journal entries
+** References
+https://karl-voit.at/2019/09/25/categories-versus-tags/
+https://irreal.org/blog/?p=5802
+https://irreal.org/blog/?p=8335
+* 01:17 Testing snippets
+With elisp:
+#+begin_src elisp
+(cl-defun eval-snippet (snippet &optional (mode 'org-mode))
+  "Eval `SNIPPET' string into `MODE'."
+  (with-temp-buffer
+    (insert snippet)
+    (yas-load-snippet-buffer mode)))
+#+end_src
+
+#+RESULTS:
+#+begin_src shell
+eval-snippet
+#+end_src
+
+#+name: src
+#+begin_src snippet
+# -*- mode: snippet -*-
+# name: #+begin_src
+# uuid: src
+# key: src
+# --
+,#+begin_src `(yas-choose-org-src)`
+`%`$0
+,#+end_src
+#+end_src
+
+#+begin_src elisp :noweb yes :results silent
+(eval-snippet "\
+<<src>>")
+#+end_src

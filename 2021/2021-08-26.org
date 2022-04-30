@@ -1,0 +1,18 @@
+#+TITLE: 26 Aug 26 de 08mmm 2021
+* 20:56 Acomodar permisos de dispositivos con udev
+Se necesita agregar una regla a la configuracion
+
+Por ejemplo:
+#+begin_src sh
+SUBSYSTEM=="input", GROUP="uinput"
+#+end_src
+
+Asigna todo los dispositivos de entrada al grupo =uinput=, esto permitira que
+puedan ser utilizados por el modulo del kernel que lleva el mismo nombre
+(=uinput=).
+** Referencias
+
+https://www.thegeekdiary.com/how-to-configure-device-file-owner-group-with-udev-rules/
+* 21:12 Formatear tiempo en haskell
+** Referencias
+https://williamyaoh.com/posts/2019-09-16-time-cheatsheet.html

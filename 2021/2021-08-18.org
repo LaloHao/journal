@@ -1,0 +1,17 @@
+#+TITLE: 18 Aug 18 de 08mmm 2021
+* 01:37 Routing computer audio to android phone
+** References
+https://github.com/wenxin-wang/PulseDroidRtp
+* 02:13 Diseño de guardaropa
+Ver pinterest
+* 03:18 Control de mouse utilizando OpenCV
+* 22:32 Formatear numeros en bash (miles, millones, etc)
+#+begin_src sh
+(cd ~/dataset && uniq rockyou.txt | wc -l | numfmt --grouping)
+#+end_src
+
+#+RESULTS:
+: 14,344,391
+
+** Referencias
+https://unix.stackexchange.com/questions/113795/add-thousands-separator-in-a-number

@@ -1,0 +1,190 @@
+#+TITLE:  2 Sep 02 de 09mmm 2021
+* 21:44 Sobre gramatica
+Empece abriendo 2 pestañas en chrome, busqué:
++ gramatica española /[[*Apendice][(Apendice)/]]
++ gramatica española dataset /[[*Apendice][(Apendice)]]/
+
+** De Wikipedia
+La *gramática del español* es muy similar a la de las demás [[https://es.wikipedia.org/wiki/Lenguas_romances][lenguas romances]].
+El [[https://es.wikipedia.org/wiki/Idioma_espa%C3%B1ol][español]] es una [[https://es.wikipedia.org/wiki/Flexi%C3%B3n_(ling%C3%BC%C3%ADstica)][lengua flexiva]] de tipo [[https://es.wikipedia.org/wiki/Lengua_fusionante][fusionante]], es decir, en las oraciones
+se usa preferentemente la [[https://es.wikipedia.org/wiki/Flexi%C3%B3n_(ling%C3%BC%C3%ADstica)][flexión]] para indicar las relaciones entre sus
+elementos.
+
+** Apendice
+[[file:gramatica española - Google Search.html]]
+[[file:gramatica española dataset - Google Search.html]]
+* 22:03 Texto `rico` en emacs :ATTACH:
+:PROPERTIES:
+:ID:       c819df79-dc0c-4080-b310-c8d55a282169
+:END:
+Estoy buscando como hacer copy paste de cualquier sitio y que sus links se
+copien, por ejemplo en wikipedia:
+
+
+[[attachment:../../_20210902_220412screenshot.png]]
+
+Todos los enlaces (azules) se pierden al copiarse a otro programa, ejemplo:
+
+#+begin_quote
+Gramática del español
+
+Este artículo trata sobre la gramática del idioma. Para un enfoque más general, véase idioma español.
+
+La gramática del español es muy similar a la de las demás lenguas romances. El español es una lengua flexiva de tipo fusionante, es decir, en las oraciones se usa preferentemente la flexión para indicar las relaciones entre sus elementos. Sin embargo, como la mayoría de las lenguas fusionantes, también recurre al uso de adposiciones (preposiciones), palabras abstractas que sirven de nexo y son invariables. Por la forma en que se marcan los argumentos de los verbos transitivos e intransitivos, se agrupa dentro de las lenguas nominativo-acusativas con algunos rasgos de ergatividad escindida. Sintácticamente el español es una lengua de núcleo inicial altamente consistente.
+#+end_quote
+
+Todos los enlaces (azules) se pierden al copiarse a otro programa?
+
+[[attachment:../../_20210902_220644screenshot.png]]
+
+Parece que no...
+
+#+begin_src emacs-lisp
+(require 'org-rich-yank)
+#+end_src
+
+#+RESULTS:
+: org-rich-yank
+
+Prueba
+
+#+BEGIN_SRC org-journal
+org-rich-yank/org-rich-yank.gif
+#+END_SRC
+[[file:~/journal/2021/2021-09-02.org::*22:03 Texto `rico` en emacs][22:03 Texto `rico` en emacs]]
+
+
+echo "<b>ABCDEF</b>" | xclip -selection c -t text/html
+<b>ABCDEF</b>
+
+Next: Secondary Selection, Previous: Clipboard, Up: Cut and Paste   [Contents][Index]
+
+<b>ABCDEF</b>
+
+
+Next: Secondary Selection, Previous: Clipboard, Up: Cut and Paste   [Contents][Index]
+
+echo "<b>ABCDEF</b>" | xclip -verbose -loop 0 -selection c -t text/html
+file:///home/hao/dev/deep-learning/deep-dreaming/PyTorch-Deep-Dream/outputs/output_dog.jpg
+
+#+begin_src emacs-lisp
+;; xclip -o -t TARGETS | grep -q text/html && (xclip -o -t text/html | pandoc -f json -t org) || xclip -o
+
+(defvar selection-type "clipboard"
+  "Default selection type to copy and paste to.")
+
+(defvar selection-target "STRING"
+  "Default selection target.")
+
+(cl-defun get-selection (&optional (type selection-type) (target selection-target) &key postprocess)
+  (let*
+      ((type   (or type   selection-type))
+       (target (or target selection-target))
+       (stdout (make-buffer))
+       (stderr (make-buffer))
+       (command (concat (format "xclip xclip -o -rmlastnl -selection %s -t %s" type target) postprocess))
+       ;; (command (append (list "xclip"  "xclip" "-o" "-selection" type "-t" target) postprocess))
+       ;; (command (list "xclip"  "xclip" "-o" "-selection" type "-t" target))
+       (proc
+        (make-process
+         :name "xclip"
+         :command '("bash" "--norc")
+         :noquery t
+         :buffer stdout
+         :stderr stderr
+         :sentinel #'ignore)))
+    (with-current-buffer stdout
+      (process-send-string proc command)
+      (process-send-eof proc)
+    ;; (goto-char (point-min))
+      (while (accept-process-output proc))
+      ;; (accept-process-output proc)
+      ;; (accept-process-output proc 0.001 nil t)
+      ;; (while (accept-process-output proc 0.001))
+      (when (process-live-p proc)
+        (delete-process proc))
+      ;; (when (process-live-p filter)
+      ;;   (delete-process filter))
+      ;; (call-process-region (point-min) (point-max) "pandoc" t stdout t "-r" "html" "-w" "org")
+      (prog1 (setq selection (buffer-string))
+        (kill-buffer stdout)
+        (kill-buffer stderr)))
+    (when (and (= (process-exit-status proc) 0)
+               (> (length selection) 0))
+      selection)))
+
+(defun unlines (&rest xs)
+  "Split `SEQ' into lines."
+  (cond ((listp xs)
+         (cond ((stringp (car xs)) (string-join xs " "))
+               (t (apply 'unlines (car xs)))))
+        (t xs)))
+
+(defun lines (&optional seq)
+  "Split `SEQ' into lines."
+  (case (and
+         (not (null seq))
+         (type-of seq))
+    (string (split-string seq))
+    (t seq)))
+
+(defun paste ()
+  "Get contents."
+  (or
+   (when-let*
+       ((targets (lines (get-selection "clipboard" "TARGETS")))
+        (available (cl-member "text/html" targets :test #'string=))
+        (valid (cl-member major-mode '(org-mode org-journal-mode)))
+        (selection (get-selection "clipboard" "text/html" :postprocess " | pandoc -r html -w org")))
+     (replace-regexp-in-string "[\\]*$" "" selection)) ;; (concat (string-trim (replace-regexp-in-string "[\\]*$" "" selection)) "\n"))
+   (gui-selection-value) ;; (get-selection "clipboard" "STRING")
+   ))
+
+(defun make-buffer (&optional name)
+  "Generate new unique `NAME' temporary buffer."
+  (generate-new-buffer
+   (generate-new-buffer-name (or name " *temp*"))))
+
+;; (defun copy-from-osx ()
+;;   (shell-command-to-string "pbpaste"))
+
+;; (setq interprogram-cut-function 'paste-to-osx)
+;; (setq interprogram-paste-function 'gui-selection-value)
+
+(setq interprogram-paste-function 'paste)
+#+end_src
+
+#+RESULTS:
+: paste
+
+#+begin_src emacs-lisp
+(real-yank)
+#+end_src
+
+#+RESULTS:
+|   | 0 |
+
+#+begin_src emacs-lisp
+(with-temp-buffer
+  (list :exit-status
+        ;; (real-yank)
+        ;; (call-process "xclip" nil t nil "-o" "-selection" "clipboard" "&>/dev/null")
+        ;; (call-process "xclip" nil t nil "-o" "-selection" "clipboard" "-t" "TARGETS")
+        (async-shell-command "xclip -o -selection primary -t TARGETS" (current-buffer))
+        ;; (shell-command "unbuffer -p xclip -o -selection clipboard -t TARGETS" (current-buffer))
+        ;; (shell-command "timeout 0.5 xclip -o -selection clipboard -t TARGETS" (current-buffer))
+
+        :output
+        (buffer-string)))
+#+end_src
+
+#+RESULTS:
+| :exit-status | #<window 418 on 2021-09-02.org> | :output |   |
+
+#+begin_src emacs-lisp
+(when-let*
+  ((targets (lines (get-selection "clipboard" "TARGETS")))
+   (available (cl-member "text/html" targets))
+   (valid (assoc 'evil-org-mode minor-mode-alist)))
+  (get-selection "clipboard" "text/html" :postprocess " | awk '{$1=$1};1' | pandoc -r html -w org"))
+#+end_src

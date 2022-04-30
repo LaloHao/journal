@@ -1,0 +1,60 @@
+#+TITLE: miercoles 11 de agosto 2021, semana 31
+
+* 01:00 Creando un eje de motor
+** Referencias
+Datasheet del motor
+https://www.mouser.mx/datasheet/2/272/step-motor-5v-28byj48-datasheet-1864397.pdf
+
+Trick: how to find the center of a cylindrical piece of wood
+263,030 views • Dec 10, 2015
+https://www.youtube.com/watch?v=XQ9WzsTlpm8
+
+Finding the Center of a Circle
+110,786 views • Jun 25, 2013
+https://www.youtube.com/watch?v=C5s30Y4FGX0
+* 02:00 Magnetic stirrer (Vortex mixer)
+Mezclador magnetico
+* 02:15 Spin coating
+Esta relacionado con el mezclado magnetico
+** Requerimientos
+- Motor brushless
+- Imanes de neodinio
+
+** Referencias:
+Design and build a spin coater by Applied Science
+137k view - 5 years ago
+- https://www.youtube.com/watch?v=321tptQ8PrU
+* 02:47 Comprando resinas
+https://www.youtube.com/watch?v=dCv9WZn-9-U
+* 02:50 Comprando imanes
+50 Pzs Imán De Neodimio 4mmx1mm Disco Magnético Disco
+4mm x 1mm
+$85
+https://articulo.mercadolibre.com.mx/MLM-726930084-50-pzs-iman-de-neodimio-4mmx1mm-disco-magnetico-disco-_JM?matt_tool=28238160&utm_source=google_shopping&utm_medium=organic
+
+10 Iman Avellanado Neodimio 12mm X 3mm 3mm Ring Anillo Dona
+$198
+https://articulo.mercadolibre.com.mx/MLM-863476993-10-iman-avellanado-neodimio-12mm-x-3mm-3mm-ring-anillo-dona-_JM#position=27&search_layout=stack&type=item&tracking_id=32e39974-07b3-46a7-a725-f10e6a150bf6
+* 02:52 PCB through hole plating
+** Referencias
+DIY Plating PCB Vias Through hole plating
+8,741 views • Aug 4, 2020
+https://www.youtube.com/watch?v=EEmW4xBFiac&t=559s
+* 03:54 Tap and dies
+** Tap (interno)
+** Die (externo)
+Existen "tapered", atacan en angulo mayor al area deseada y va acercandose
+* 04:08 Extrusion de plastico (peletizadora)
+** Referencias
+Making an Auger (feed conveyor) from Washers ...and mathematics!
+337,859 views • Sep 18, 2020
+https://www.youtube.com/watch?v=_JkVqEtmaOg
+* 07:16 Hacking the apple airtags
+So he got in using JTAG, then ran some commands like:
+
+- strings FIRMWARE.bin
+** References
+https://www.youtube.com/watch?v=paxErRRsrTU
+* 22:06 Pantalla gateway
+Código de reciclaje 7
+ABS + PMMA

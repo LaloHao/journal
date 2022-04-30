@@ -1,0 +1,133 @@
+#+TITLE:  5 Sep 05 de 09mmm 2021
+* 20:16 Montando un disco nuevo
+Agregar a [[file:/etc/nixos/hardware-configuration.nix]] la entrada del disco duro:
+
+#+begin_src nix
+{
+  fileSystems."/data" = {
+    device = "/dev/disk/by-uuid/..................................";
+    fsType = "ext4";
+    options = [ "rw" "users" ];
+  };
+}
+#+end_src
+
+El UUID se puede obtener listando los dispositivos que aparecen como discos
+disponibles:
+
+#+begin_src shell
+ls -l /dev/disk/by-uuid
+#+end_src
+
+#+RESULTS:
+| total      | 0 |      |      |    |     |   |       |                                      |    |                 |
+| lrwxrwxrwx | 1 | root | root | 10 | Sep | 5 | 20:01 | 00000000-0000-0000-0000-000000000000 | -> | ../../sdb1      |
+| lrwxrwxrwx | 1 | root | root | 15 | Sep | 5 | 19:52 | 11111111-1111-1111-1111-111111111111 | -> | ../../nvme0n1p2 |
+| lrwxrwxrwx | 1 | root | root | 15 | Sep | 5 | 19:52 | 22222222-2222-2222-2222-222222222222 | -> | ../../nvme0n1p1 |
+| lrwxrwxrwx | 1 | root | root | 10 | Sep | 5 | 19:53 | 33333333-3333-3333-3333-333333333333 | -> | ../../sda1      |
+| lrwxrwxrwx | 1 | root | root | 15 | Sep | 5 | 19:53 | 44444444-4444-4444-4444-444444444444 | -> | ../../nvme0n1p3 |
+
+Aplicar la nueva configuracion:
+#+begin_src shell
+sudo nixos-rebuild switch
+#+end_src
+
+#+RESULTS:
+:results:
+sudo nixos-rebuild switch
+building Nix...
+building the system configuration...
+activating the configuration...
+setting up /etc...
+reloading user units for hao...
+setting up tmpfiles
+the following new units were started: data.mount
+:end:
+
+Nos dira entonces que ya esta montado:
+#+begin_quote
+the following new units were started: data.mount
+#+end_quote
+
+Pero no va a servir
+#+begin_src shell
+cd /data
+#+end_src
+
+#+RESULTS:
+:results:
+bash: cd: /data: Permission denied
+:end:
+
+Porque no tiene asignado ningún permiso, usuario o grupo.
+#+begin_src shell
+ls -l /
+#+end_src
+
+#+RESULTS:
+:results:
+total xxxK
+drwxr-xr-x  20 root root  4.0K Sep  5 20:01 .
+drwxr-xr-x  20 root root  4.0K Sep  5 20:01 ..
+drwxr-xr-x   2 root root  4.0K Sep  5 20:07 bin
+drwxr-xr-x   5 root root  4.0K Dec 31  1969 boot
+drwx------   3 root users 4.0K Sep  5 19:57 data
+drwxr-xr-x  19 root root  3.7K Sep  5 19:57 dev
+drwxr-xr-x  39 root root  4.0K Sep  5 20:07 etc
+drwxr-xr-x   3 root root  4.0K Feb  8  2021 home
+drwxr-xr-x   4 root root  4.0K Feb  8  2021 nix
+drwxr-xr-x  10 root root  4.0K Sep  5 19:52 var
+:end:
+
+El susodicho:
+#+begin_quote
+drwx------   3 root users 4.0K Sep  5 19:57 data
+#+end_quote
+
+Hay que cambiar entonces los permisos:
+#+begin_src shell
+sudo chmod -Rv 775 /data
+#+end_src
+
+#+RESULTS:
+:results:
+mode of '/data' changed from 0700 (rwx------) to 0775 (rwxrwxr-x)
+mode of '/data/lost+found' changed from 0700 (rwx------) to 0775 (rwxrwxr-x)
+:end:
+
+Notese que el sistema se encargo de crear la carpeta [[file:/data/lost+found/]] pero
+no de darnos permisos 😂
+
+Mic check:
+#+begin_src shell
+ls -la /data
+#+end_src
+
+#+RESULTS:
+:results:
+total 24K
+drwxrwxr-x  3 root users 4.0K Sep  5 19:57 .
+drwxr-xr-x 20 root root  4.0K Sep  5 20:01 ..
+drwxrwxr-x  2 root users  16K Sep  5 19:57 lost+found
+:end:
+
+** Referencias
+https://old.reddit.com/r/NixOS/comments/nul6l1/how_to_automount_an_ext4_partition_with_user/
+https://en.wikipedia.org/wiki/Chmod
+* 21:09 Creando un nuevo backend para exportar org mode
+Los puntos de entrada para crear un backend son 2 cite:AddingEx18:online:
+1. =org-export-define-backend=
+2. =org-export-define-derived-backend=
+
+El primero se utiliza para crear motores desde cero, mientras que el ultimo se
+deriva de un motor existente y se sobrescribe la configuración deseada.
+
+=ox-latex.el= cite:orgoxlat74:online es un ejemplo del primero y e
+
+** Referencias
+https://orgmode.org/manual/Adding-Export-Back_002dends.html
+https://orgmode.org/manual/Advanced-Export-Configuration.html
+https://orgmode.org/worg/dev/org-export-reference.html
+* 21:27 Org mode para escribir
+** Referencias
+http://viveks.info/org-mode-academic-writing-bibliographies-org-ref/

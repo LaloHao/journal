@@ -1,0 +1,131 @@
+#+TITLE: viernes 10 de septiembre 2021, semana 36
+* 01:00 Como aprender \LaTeX internals
+** References
+https://tex.stackexchange.com/questions/582371/how-to-learn-latex-internals
+https://tex.stackexchange.com/questions/7453/what-is-the-use-of-percent-signs-at-the-end-of-lines-why-is-my-macro-creat
+https://tex.stackexchange.com/questions/48195/macro-naming-best-practice/48207#48207
+https://texfaq.org/FAQ-writecls
+https://tex.stackexchange.com/questions/34175/how-do-i-create-a-latex-package
+https://tex.stackexchange.com/questions/12668/where-do-i-start-latex-programming
+https://tex.stackexchange.com/questions/385649/a-latex-course-for-intermediate-users-stuck-on-the-learning-curve
+http://tug.org/tugboat/
+https://ctan.math.illinois.edu/macros/latex/base/source2e.pdf
+https://www.ctan.org/pkg/latex-essential
+https://tex.stackexchange.com/questions/7453/what-is-the-use-of-percent-signs-at-the-end-of-lines-why-is-my-macro-creat
+* 22:14 Mantener output en PAGER
+#+begin_src shell
+seq 100 | xargs -i bash -c 'echo -e "^[[$(($1 % 9 + 31))m$1^[[39;49m"' - '{}' | less -r -X
+#+end_src
+
+#+RESULTS:
+| ^[[32m1^[[39;49m   |
+| ^[[33m2^[[39;49m   |
+| ^[[34m3^[[39;49m   |
+| ^[[35m4^[[39;49m   |
+| ^[[36m5^[[39;49m   |
+| ^[[37m6^[[39;49m   |
+| ^[[38m7^[[39;49m   |
+| ^[[39m8^[[39;49m   |
+| ^[[31m9^[[39;49m   |
+| ^[[32m10^[[39;49m  |
+| ^[[33m11^[[39;49m  |
+| ^[[34m12^[[39;49m  |
+| ^[[35m13^[[39;49m  |
+| ^[[36m14^[[39;49m  |
+| ^[[37m15^[[39;49m  |
+| ^[[38m16^[[39;49m  |
+| ^[[39m17^[[39;49m  |
+| ^[[31m18^[[39;49m  |
+| ^[[32m19^[[39;49m  |
+| ^[[33m20^[[39;49m  |
+| ^[[34m21^[[39;49m  |
+| ^[[35m22^[[39;49m  |
+| ^[[36m23^[[39;49m  |
+| ^[[37m24^[[39;49m  |
+| ^[[38m25^[[39;49m  |
+| ^[[39m26^[[39;49m  |
+| ^[[31m27^[[39;49m  |
+| ^[[32m28^[[39;49m  |
+| ^[[33m29^[[39;49m  |
+| ^[[34m30^[[39;49m  |
+| ^[[35m31^[[39;49m  |
+| ^[[36m32^[[39;49m  |
+| ^[[37m33^[[39;49m  |
+| ^[[38m34^[[39;49m  |
+| ^[[39m35^[[39;49m  |
+| ^[[31m36^[[39;49m  |
+| ^[[32m37^[[39;49m  |
+| ^[[33m38^[[39;49m  |
+| ^[[34m39^[[39;49m  |
+| ^[[35m40^[[39;49m  |
+| ^[[36m41^[[39;49m  |
+| ^[[37m42^[[39;49m  |
+| ^[[38m43^[[39;49m  |
+| ^[[39m44^[[39;49m  |
+| ^[[31m45^[[39;49m  |
+| ^[[32m46^[[39;49m  |
+| ^[[33m47^[[39;49m  |
+| ^[[34m48^[[39;49m  |
+| ^[[35m49^[[39;49m  |
+| ^[[36m50^[[39;49m  |
+| ^[[37m51^[[39;49m  |
+| ^[[38m52^[[39;49m  |
+| ^[[39m53^[[39;49m  |
+| ^[[31m54^[[39;49m  |
+| ^[[32m55^[[39;49m  |
+| ^[[33m56^[[39;49m  |
+| ^[[34m57^[[39;49m  |
+| ^[[35m58^[[39;49m  |
+| ^[[36m59^[[39;49m  |
+| ^[[37m60^[[39;49m  |
+| ^[[38m61^[[39;49m  |
+| ^[[39m62^[[39;49m  |
+| ^[[31m63^[[39;49m  |
+| ^[[32m64^[[39;49m  |
+| ^[[33m65^[[39;49m  |
+| ^[[34m66^[[39;49m  |
+| ^[[35m67^[[39;49m  |
+| ^[[36m68^[[39;49m  |
+| ^[[37m69^[[39;49m  |
+| ^[[38m70^[[39;49m  |
+| ^[[39m71^[[39;49m  |
+| ^[[31m72^[[39;49m  |
+| ^[[32m73^[[39;49m  |
+| ^[[33m74^[[39;49m  |
+| ^[[34m75^[[39;49m  |
+| ^[[35m76^[[39;49m  |
+| ^[[36m77^[[39;49m  |
+| ^[[37m78^[[39;49m  |
+| ^[[38m79^[[39;49m  |
+| ^[[39m80^[[39;49m  |
+| ^[[31m81^[[39;49m  |
+| ^[[32m82^[[39;49m  |
+| ^[[33m83^[[39;49m  |
+| ^[[34m84^[[39;49m  |
+| ^[[35m85^[[39;49m  |
+| ^[[36m86^[[39;49m  |
+| ^[[37m87^[[39;49m  |
+| ^[[38m88^[[39;49m  |
+| ^[[39m89^[[39;49m  |
+| ^[[31m90^[[39;49m  |
+| ^[[32m91^[[39;49m  |
+| ^[[33m92^[[39;49m  |
+| ^[[34m93^[[39;49m  |
+| ^[[35m94^[[39;49m  |
+| ^[[36m95^[[39;49m  |
+| ^[[37m96^[[39;49m  |
+| ^[[38m97^[[39;49m  |
+| ^[[39m98^[[39;49m  |
+| ^[[31m99^[[39;49m  |
+| ^[[32m100^[[39;49m |
+* 23:00 Testing in Doom's sandbox
+Opening the sandbox:
++ =SPC h E= (evil mode)
++ =C-h E= (emacs mode)
++ =M-x doom/sandbox=
+* 23:12 Add shebang to shell scripts in org mode export
+[[file:~/dev/dotfiles/doom.d/config.el::add-hook 'org-export-before-parsing-hook #'org-export-insert-shell-prompt)]]
+
+** References
+https://emacs.stackexchange.com/questions/44958/can-i-insert-a-prefix-to-org-babel-source-code-lines-on-export/68463#68463
+https://old.reddit.com/r/emacs/comments/hz0nwv/how_do_you_record_and_export_interactive_shell/

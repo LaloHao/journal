@@ -1,0 +1,125 @@
+#+TITLE: miércoles 08 de septiembre 2021, semana 36
+
+* 01:50 Graphviz/Diagramas en org mode
+
+#+begin_src dot :file flowcharts-in-graphviz.png :cmdline -Kdot -Tpng
+digraph G {
+  node [fontname = "Handlee"];
+  edge [fontname = "Handlee"];
+
+
+  draw [ label = "Draw a picture" ];
+  win [ label = "You win!" ];
+  guess [ label = "Did they\nguess it?" ];
+  point [
+    label = "Point repeatedly\nto the same picture."
+  ];
+
+  draw -> guess;
+
+  guess -> win [ label = "Yes" ];
+  point -> guess;
+  guess -> point [ label = "No" ];
+}
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:flowcharts-in-graphviz.png]]
+:end:
+
+** References
+https://sketchviz.com/flowcharts-in-graphviz
+https://github.com/ppareit/graphviz-dot-mode
+https://joy.pm/post/2017-09-17-a_graphviz_primer/
+* 02:43 Graphviz haciendola de pedo
+#+begin_src dot :cmdline -Kdot -Tpng :file constraint-true.png
+digraph G {
+  a -> c;
+  a -> b;
+  b -> c [constraint=true];
+}
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:constraint-true.png]]
+:end:
+
+#+begin_src dot :cmdline -Kdot -Tpng :file constraint-false.png
+digraph G {
+  a -> c;
+  a -> b;
+  b -> c [constraint=false];
+}
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:constraint-false.png]]
+:end:
+* 03:29 Graphviz Tree of life
+#+begin_src dot :file tree-of-life.png :cmdline -Kdot -Tpng
+digraph {
+  edge[arrowhead=none]
+  node[width=1,height=1]
+  graph[nodesep=1]
+  rankdir="BT"
+
+  bgcolor="#222222"
+
+  // defaults for edges and nodes can be specified
+  node [ color="#ffffff" fontcolor="#ffffff" ]
+  edge [ color="#ffffff" ]
+
+  1 -> 2
+
+  2 -> 3
+  2 -> 4
+
+  3 -> 4
+
+  3 -> 5
+  4 -> 5
+
+  3 -> 6
+  5 -> 6
+  5 -> 7
+  4 -> 7
+
+  {rank=same; 3 4}
+  {rank=same; 6 7}
+  {rank=same; 9 10}
+
+  6 -> 7
+
+  6 -> 8
+  6 -> 9
+  7 -> 8
+  7 -> 10
+  8 -> 9
+  8 -> 10
+
+  9 -> 10
+  9 -> 11
+  10 -> 11
+
+  1 [label="Malkuth"]
+  2 [label="Yesod"]
+  3 [label="Hod"]
+  4 [label="Netzah"]
+  5 [label="Tif'eret"]
+  6 [label="Gevurah"]
+  7 [label="Hesed"]
+  8 [label="Da'at"]
+  9 [label="Binah"]
+  10 [label="Hokhmah"]
+  11 [label="Keter"]
+
+}
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:tree-of-life.png]]
+:end:

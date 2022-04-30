@@ -1,0 +1,19 @@
+#+TITLE: 23 Aug 23 de 08mmm 2021
+* 23:37 Diccionarios en Haskell
+** Referencias
+Whats the equivalent of a Python Dictionary in Haskell ??
+https://old.reddit.com/r/haskellquestions/comments/2xn9y2/whats_the_equivalent_of_a_python_dictionary_in/
+* IDEA 23:51 google-chrome-tab-history-pop-to-new-window
+Comando en google chrome que duplica la pestaña actual (en la misma ventana) y
+posteriormente regresa a la pagina anterior
+
+** +Omitido+
++Comando en google chrome que hace lo siguiente:+
+Asume que:
+  - La ventana actual es
+    + W (window)
+  - La pestaña actual es
+    + T (tab)
+#+begin_quote
+1.
+#+end_quote

@@ -1,0 +1,33 @@
+#+TITLE: 24 Aug 24 de 08mmm 2021
+* 00:08 Interactuando con google chrome
+Estaba intentando ejecutar interactivamente unas funciones de la api de
+extensiones de chrome
+
+#+begin_src js
+async function getCurrentTab() {
+  let queryOptions = { active: true, currentWindow: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
+
+const tab = await getCurrentTab();
+
+chrome.tabs.duplicate(tab.id);
+#+end_src
+
+Al parecer se puede ejecutar codigo de una dos maneras (disyuncion):
+
+1. Dentro de una extension de chrome
+2. Dentro de la consola de una extension de chrome
+
+(1) Desarrollar una extension de chrome solo para hacer una prueba rapida es inaceptable.
+
+#+CAPTION: (2) Por otro lado, si ya tienes una extension (propia) de chrome instalada que cuente con los permisos suficientes (ver permisos de extensiones de chrome) puedes dar =click derecho->inspeccionar ventana= a esa extension
+[[file:Screenshot_20210824_002443.png]]
+* 23:34 Jupyter notebook en emacs
+#+begin_src jupyter :output results :session py
+1+1
+#+end_src
+
+#+RESULTS:
+: 2

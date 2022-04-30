@@ -1,0 +1,77 @@
+#+TITLE: 20 Aug 20 de 08mmm 2021
+* 13:52 Get nix path from store
+#+name: nix-paths
+#+begin_src sh :results output file :cache yes :file nix-paths.dot
+nix-store -q --graph /run/current-system
+#+end_src
+
+#+RESULTS[fc272b2649d3280a1b605a924f807c8c44c5fc00]: nix-paths
+[[file:nix-paths.dot]]
+
+#+name: nix-paths-graph
+#+begin_src sh :file nix-paths.png
+dot -Tpng nix-paths.dot
+#+end_src
+
+#+RESULTS: nix-paths-graph
+[[file:nix-paths.png]]
+
+* 13:53 Org-mode's babel's output
+** Capturing the Results of Code Evaluation
+   Babel provides two fundamentally different modes for capturing
+   the results of code evaluation: functional mode and scripting
+   mode.  The choice of mode is specified by the =:results= header
+   argument.
+*** =:results value= (functional mode)
+    The 'result' of code evaluation is the *value* of the last
+    statement in the code block. In functional mode, the
+    code block is a function with a return value. The return
+    value of one code block can be used as input for another
+    code block, even one in a different language.  In this
+    way, Babel becomes a meta-programming language. If the block
+    returns tabular data (a vector, array or table of some sort) then
+    this will be held as an Org-mode table in the buffer. This
+    setting is the default.
+
+    For example, consider the following block of python code and its
+    output.
+
+    #+begin_src python :results value
+import time
+print("Hello, today's date is %s" % time.ctime())
+print('Two plus two is')
+return 2 + 2
+    #+end_src
+
+    #+resname:
+    : 4
+
+    Notice that, in functional mode, the output consists of the value of
+    the last statement and nothing else.
+
+*** =:results output= (scripting mode)
+    In scripting mode, Babel captures the text output of the
+    code block and places it in the Org-mode buffer. It is
+    called scripting mode because the code block contains a series of
+    commands, and the output of each command is returned. Unlike
+    functional mode, the code block itself has no return value
+    apart from the output of the commands it contains.[fn:2]
+
+    Consider the result of evaluating this code block with
+    scripting mode.
+
+    #+name: name
+    #+begin_src python :results output
+import time
+print("Hello, today's date is %s" % time.ctime())
+print('Two plus two is')
+2 + 2
+    #+end_src
+
+    #+resname: name
+    : Hello, today's date is Wed Nov 11 18:50:36 2009
+    : Two plus two is
+
+    Here, scripting mode returned the text that python sent to =stdout=.  Because
+    the code block doesn't include a =print()= statement for the last
+    value, =(2 + 2)=, 4 does not appear in the results.

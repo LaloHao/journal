@@ -1,0 +1,34 @@
+#+TITLE: martes 07 de septiembre 2021, semana 36
+* 01:26 Location change
+#+begin_src js
+(function() {
+    var pushState = history.pushState;
+    var replaceState = history.replaceState;
+
+    history.pushState = function() {
+        pushState.apply(history, arguments);
+        window.dispatchEvent(new Event('pushstate'));
+        window.dispatchEvent(new Event('locationchange'));
+    };
+
+    history.replaceState = function() {
+        replaceState.apply(history, arguments);
+        window.dispatchEvent(new Event('replacestate'));
+        window.dispatchEvent(new Event('locationchange'));
+    };
+
+    window.addEventListener('popstate', function() {
+        window.dispatchEvent(new Event('locationchange'))
+    });
+})();
+
+// Example usage:
+
+window.addEventListener('locationchange', function(){
+    console.log('onlocationchange event occurred!');
+    history.replaceState(null, null, ' ');
+})
+#+end_src
+
+** References
+https://dirask.com/posts/JavaScript-on-location-changed-event-on-url-changed-event-DKeyZj

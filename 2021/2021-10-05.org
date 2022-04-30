@@ -1,0 +1,23 @@
+#+TITLE: martes 05 de octubre 2021, semana 40
+
+* 16:42 Cannot run script inside a hard drive mounted with noexec
+To start of what i was trying to do:
+
+#+begin_src sh
+cd /data/dataset/VoxCeleb2/dev/aac
+./convert-wav.sh
+#+end_src
+
+#+RESULTS:
+: sh: line 3: ./convert-wav.sh: Permission denied
+
+* 16:56 Always output executed code :org:babel:bash:sh:
+#+name: always-output-executed-code
+#+begin_src org
+#+PROPERTY: header-args:sh :prologue "exec 2>&1" :epilogue ":"
+#+end_src
+** References
+https://emacs.stackexchange.com/questions/59875/org-src-block-does-not-return-any-output
+https://kitchingroup.cheme.cmu.edu/blog/2015/01/04/Redirecting-stderr-in-org-mode-shell-blocks/
+https://stackoverflow.com/questions/3224878/what-is-the-purpose-of-the-colon-gnu-bash-builtin
+https://necromuralist.github.io/posts/org-babel-stderr-results/

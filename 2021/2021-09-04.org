@@ -1,0 +1,870 @@
+#+TITLE:  4 Sep 04 de 09mmm 2021
+* 01:22 Ventanas flotantes :xmonad:ATTACH:
+:PROPERTIES:
+:ID:       9fbcf3d6-c6f0-4f6d-a026-ab977008876f
+:END:
+Leyendo las propiedades de una [[ventana flotante]]:
+
+#+begin_src bash :wrap SRC bash
+xprop
+#+end_src
+
+#+RESULTS:
+#+begin_SRC bash
+_NET_WM_USER_TIME(CARDINAL) = 283044198
+WM_STATE(WM_STATE):
+		window state: Normal
+		icon window: 0x0
+WM_HINTS(WM_HINTS):
+		Client accepts input or input focus: True
+		Initial state is Normal State.
+		bitmap id # to use for icon: 0x800007
+		bitmap id # of mask for icon: 0x800012
+		window id # of group leader: 0x800001
+_GTK_THEME_VARIANT(UTF8_STRING) =
+XdndAware(ATOM) = BITMAP
+_NET_WM_ICON(CARDINAL) =
+_GTK_MENUBAR_OBJECT_PATH(UTF8_STRING) = "/org/gtk/Application/anonymous/menus/menubar"
+_GTK_WINDOW_OBJECT_PATH(UTF8_STRING) = "/org/gtk/Application/anonymous/window/1"
+_GTK_APPLICATION_OBJECT_PATH(UTF8_STRING) = "/org/gtk/Application/anonymous"
+_GTK_UNIQUE_BUS_NAME(UTF8_STRING) = ":1.41"
+_NET_WM_OPAQUE_REGION(CARDINAL) = 0, 0, 1323, 661
+_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_NORMAL
+_NET_WM_SYNC_REQUEST_COUNTER(CARDINAL) = 8388613, 8388614
+_NET_WM_USER_TIME_WINDOW(WINDOW): window id # 0x800004
+WM_CLIENT_LEADER(WINDOW): window id # 0x800001
+_NET_WM_PID(CARDINAL) = 37759
+WM_LOCALE_NAME(STRING) = "en_US.UTF-8"
+WM_CLIENT_MACHINE(STRING) = "emma"
+WM_NORMAL_HINTS(WM_SIZE_HINTS):
+		program specified minimum size: 228 by 107
+		program specified base size: 0 by 0
+		window gravity: NorthWest
+WM_PROTOCOLS(ATOM): protocols  WM_DELETE_WINDOW, WM_TAKE_FOCUS, _NET_WM_PING, _NET_WM_SYNC_REQUEST
+WM_CLASS(STRING) = "termonad", "Termonad"
+WM_ICON_NAME(STRING) = "Termonad"
+_NET_WM_ICON_NAME(UTF8_STRING) = "Termonad"
+WM_NAME(STRING) = "Termonad"
+_NET_WM_NAME(UTF8_STRING) = "Termonad"
+#+end_SRC
+
+#+NAME: ventana flotante
+#+CAPTION: Especificamente youtube reproduciendo un video dentro de google chrome
+#+ATTR_HTML: :width 1024px
+#+ATTR_LATEX: :width 1024px
+[[attachment:../../../../journal/2021/01:22_Ventanas_flotantes/_20210904_012715screenshot.png]]
+
+* 02:47 Obteniendo el espurio que inyecta estilos a un nodo
+#+begin_src emacs-lisp :results silent
+(letf ((default-directory (expand-file-name "~/dev/dotfiles/")))
+  (indium-connect))
+#+end_src
+
+#+begin_src emacs-lisp
+(advice-add 'indium-render-remote-object-to-string :around 'org-babel-interaction)
+(advice-remove 'indium-render-remote-object-to-string 'org-babel-interaction)
+
+(defvar *org-babel-interaction-result* nil
+  "Placeholder for intercommunication.")
+
+(defun org-babel-interaction-enabled ()
+  t)
+
+(defun org-babel-interaction (f &rest a)
+  (setq *org-babel-interaction-result* (apply f a))
+  ;; (if (org-babel-interaction-enabled)
+  ;;     (setq *org-babel-interaction-result* (apply f a))
+  ;;   (apply f a))
+  )
+
+(with-temp-buffer
+  (insert "console.log(location)")
+  (with-output-to-string
+    (indium-eval-buffer)))
+#+end_src
+
+#+RESULTS:
+
+#+begin_src emacs-lisp
+;; old foreground #5B6268
+;; old background #23272e
+(let ((foreground "#dbe5e5")
+      (background "#23272e"))
+  (set-face-attribute
+   'org-block-begin-line nil
+   :foreground foreground
+   :background background)
+  (set-face-attribute
+   'org-block-end-line nil
+   :foreground foreground
+   :background background)
+  (set-face-attribute
+   'org-block-background nil
+   :background background))
+#+end_src
+
+#+begin_src emacs-lisp
+(indium-eval "console.log(new Date())")
+#+end_src
+
+#+RESULTS:
+
+#+begin_src emacs-lisp
+(require 'ob)
+(require 'ob-js)
+
+(advice-remove 'org-babel-execute:js 'org-babel-execute:indium)
+(advice-add 'org-babel-execute:js :around 'org-babel-execute:indium)
+
+(defun org-babel-execute:indium (f body params)
+  (lexical-let*
+      ((body (org-babel-expand-body:generic body params
+               (org-babel-variable-assignments:js params)))
+       (pos (point))
+       output done resume)
+    (cl-letf (((symbol-function 'resume) (lambda (result) (setq output result done t))))
+      (indium-eval body (lambda (result) (setq output result done t)))
+      (while (not done))
+      (goto-char pos)
+      (org-babel-insert-result output))))
+#+end_src
+
+#+RESULTS:
+: org-babel-execute:indium
+
+#+begin_src js
+location
+#+end_src
+
+#+RESULTS:
+* 06:26 Choosing when to spellcheck (flyspell)
+#+begin_src emacs-lisp
+(defun org+-flyspell-skip-code (b e _ignored)
+  "Returns non-nil if current word is code.
+This function is intended for `flyspell-incorrect-hook'."
+  (save-excursion
+    (goto-char b)
+    (memq (org-element-type (org-element-context))
+      '(code src-block))))
+
+(defun org+-config-flyspell ()
+  "Configure flyspell for org-mode."
+  (add-hook 'flyspell-incorrect-hook #'org+-flyspell-skip-code nil t))
+
+(add-hook 'org-mode-hook #'org+-config-flyspell)
+#+end_src
+
+** References
+https://emacs.stackexchange.com/questions/54619/skip-flyspell-checking-of-code-and-verbatim-regions-in-org-mode
+* 06:44 Formatting org mode src blocks
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (defvar-local org-at-src-begin -1
+    "Variable that holds whether last position was a ")
+
+  (defvar ob-header-symbol ?☰
+    "Symbol used for babel headers")
+
+  (defun org-prettify-src--update ()
+    (let ((case-fold-search t)
+          (re "^[ \t]*#\\+begin_src[ \t]+[^ \f\t\n\r\v]+[ \t]*")
+          found)
+      (save-excursion
+        (save-restriction
+          (narrow-to-region (window-start) (window-end))
+          (mapc (lambda (ov) (when (overlay-get ov 'self-made) (delete-overlay ov)))
+                (overlays-in (point-min) (point-max)))
+          (goto-char (point-min))
+          (let (beg end hbeg hend header)
+            (while (re-search-forward re nil t)
+              (setq beg (match-beginning 0))
+              (setq end (match-end 0))
+              (setq header
+                (replace-regexp-in-string
+                 "^[ \t]*#\\+begin_src[ \t]+" ""
+                 (buffer-substring-no-properties beg end)))
+              (let ((ov (make-overlay beg end))
+                    (header (format "✎ %s" header)))
+                (overlay-put ov 'self-made t)
+                (overlay-put ov 'intangible t)
+                (overlay-put ov 'display (propertize header
+                                           'display '(height (+ 10))
+                                           'face    '(:foreground "#dbe5e5")))
+                ;; (overlay-put ov 'display "HELLO")
+                ;; (overlay-put ov 'display (put-text-property 0 1 'display '(height (+ 10)) "✎"))
+                (overlay-put ov 'evaporate t))))))))
+
+  (defun org-prettify-src ()
+    "Hide src options via `prettify-symbols-mode'.
+
+  `prettify-symbols-mode' is used because it has uncollpasing. It's
+  may not be efficient."
+    (let* ((case-fold-search t)
+           (at-src-block (save-excursion
+                           (beginning-of-line)
+                           (looking-at "^[ \t]*#\\+begin_src[ \t]+[^ \f\t\n\r\v]+[ \t]*"))))
+      ;; Test if we moved out of a block.
+      (when (or (and org-at-src-begin
+                     (not at-src-block))
+                ;; File was just opened.
+                (eq org-at-src-begin -1))
+        (org-prettify-src--update))
+      ;; Remove composition if at line; doesn't work properly.
+      ;; (when at-src-block
+      ;;   (with-silent-modifications
+      ;;     (remove-text-properties (match-end 0)
+      ;;                             (1+ (line-end-position))
+      ;;                             '(composition))))
+      (setq org-at-src-begin at-src-block)))
+
+  (defun org-prettify-symbols ()
+    ;; (mapc (apply-partially 'add-to-list 'prettify-symbols-alist)
+    ;;       (cl-reduce 'append
+    ;;                  (mapcar (lambda (x) (list x (cons (upcase (car x)) (cdr x))))
+    ;;                          `(("#+begin_src" . ?✎) ;; ➤ 🖝 ➟ ➤ ✎
+    ;;                            ("#+end_src"   . ?□) ;; ⏹
+    ;;                            ("#+header:" . ,ob-header-symbol)
+    ;;                            ("#+begin_quote" . ?»)
+    ;;                            ("#+end_quote" . ?«)))))
+    ;; (turn-on-prettify-symbols-mode)
+    (add-hook 'post-command-hook 'org-prettify-src t t))
+  (add-hook 'org-mode-hook #'org-prettify-symbols))
+
+(defun org-babel-jupyter-language-p (&rest universal-argument))
+#+end_src
+
+#+RESULTS:
+: org-babel-jupyter-language-p
+
+** References
+https://stackoverflow.com/questions/24862563/how-to-display-text-with-different-colors-in-mode-line
+https://emacs.stackexchange.com/questions/12725/is-is-possible-to-treat-any-symbol-in-the-buffer-as-word-when-moving-around
+https://pank.eu/blog/pretty-babel-src-blocks.html
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Fringe-Bitmaps.html
+https://github.com/emacs-lsp/lsp-ui/issues/561
+https://old.reddit.com/r/emacs/comments/ahlhsc/how_do_i_increase_font_size_for_all_buffers_on/
+https://orgmode.org/worg/org-contrib/babel/examples/fontify-src-code-blocks.html
+* 09:21 Interactuando con devtools
+Obtener la lista de tabs:
+#+begin_src restclient
+GET http://localhost:9022/json
+#+end_src
+
+#+RESULTS:
+#+begin_example
+,#+BEGIN_SRC js
+[
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/3714601B002D0EA089EBB3366B01E7F9",
+    "faviconUrl": "https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196",
+    "id": "3714601B002D0EA089EBB3366B01E7F9",
+    "title": "Use cUrl with Chrome remote debugging - Stack Overflow",
+    "type": "page",
+    "url": "https://stackoverflow.com/questions/52783655/use-curl-with-chrome-remote-debugging",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/3714601B002D0EA089EBB3366B01E7F9"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/227F03E03FCB969B667004DFC015D040",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "227F03E03FCB969B667004DFC015D040",
+    "title": "Search · api",
+    "type": "page",
+    "url": "https://github.com/NicolasPetton/Indium/search?q=api",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/227F03E03FCB969B667004DFC015D040"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/7E51222D4F6B8E5DB7A86EDAFA02E7F1",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "7E51222D4F6B8E5DB7A86EDAFA02E7F1",
+    "title": "Cannot launch (error in process filter) · Issue #208 · NicolasPetton/Indium",
+    "type": "page",
+    "url": "https://github.com/NicolasPetton/Indium/issues/208",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/7E51222D4F6B8E5DB7A86EDAFA02E7F1"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/F02FBA4B5E250604F98158D554481775",
+    "faviconUrl": "http://endlessparentheses.com/favicon-32x32.png",
+    "id": "F02FBA4B5E250604F98158D554481775",
+    "parentId": "4ED477FF7422A9F5D0E5151F46C08768",
+    "title": "https://disqus.com/embed/comments/?base=default&amp;f=endlessparentheses&amp;t_i=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&amp;t_u=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&amp;t_d=Understanding%20letf%20and%20how%20it%20replaces%20flet&amp;t_t=Understanding%20letf%20and%20how%20it%20replaces%20flet&amp;s_o=default#version=9bdb65de27b881f62b84ef54f46d1575",
+    "type": "iframe",
+    "url": "https://disqus.com/embed/comments/?base=default&f=endlessparentheses&t_i=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&t_u=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&t_d=Understanding%20letf%20and%20how%20it%20replaces%20flet&t_t=Understanding%20letf%20and%20how%20it%20replaces%20flet&s_o=default#version=9bdb65de27b881f62b84ef54f46d1575",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/F02FBA4B5E250604F98158D554481775"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/1608EB8C9393FD0C41AB2EB5628782C9",
+    "faviconUrl": "http://endlessparentheses.com/favicon-32x32.png",
+    "id": "1608EB8C9393FD0C41AB2EB5628782C9",
+    "parentId": "4ED477FF7422A9F5D0E5151F46C08768",
+    "title": "https://platform.twitter.com/widgets/follow_button.f88235f49a156f8b4cab34c7bc1a0acc.en.html#dnt=true&amp;id=twitter-widget-0&amp;lang=en&amp;screen_name=AMalabarba&amp;show_count=true&amp;show_screen_name=false&amp;size=l&amp;time=1630748502141",
+    "type": "iframe",
+    "url": "https://platform.twitter.com/widgets/follow_button.f88235f49a156f8b4cab34c7bc1a0acc.en.html#dnt=true&id=twitter-widget-0&lang=en&screen_name=AMalabarba&show_count=true&show_screen_name=false&size=l&time=1630748502141",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/1608EB8C9393FD0C41AB2EB5628782C9"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/DC0E538E61333C7D8A42136C04CE45DF",
+    "faviconUrl": "http://endlessparentheses.com/favicon-32x32.png",
+    "id": "DC0E538E61333C7D8A42136C04CE45DF",
+    "parentId": "4ED477FF7422A9F5D0E5151F46C08768",
+    "title": "https://disqus.com/recommendations/?base=default&amp;f=endlessparentheses&amp;t_i=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&amp;t_u=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&amp;t_d=Understanding%20letf%20and%20how%20it%20replaces%20flet&amp;t_t=Understanding%20letf%20and%20how%20it%20replaces%20flet#version=064141e2948b0e7f6218d4075662ea80",
+    "type": "iframe",
+    "url": "https://disqus.com/recommendations/?base=default&f=endlessparentheses&t_i=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&t_u=https%3A%2F%2Fendlessparentheses.com%2Funderstanding-letf-and-how-it-replaces-flet.html&t_d=Understanding%20letf%20and%20how%20it%20replaces%20flet&t_t=Understanding%20letf%20and%20how%20it%20replaces%20flet#version=064141e2948b0e7f6218d4075662ea80",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/DC0E538E61333C7D8A42136C04CE45DF"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/4ED477FF7422A9F5D0E5151F46C08768",
+    "faviconUrl": "http://endlessparentheses.com/favicon-32x32.png",
+    "id": "4ED477FF7422A9F5D0E5151F46C08768",
+    "title": "Understanding letf and how it replaces flet · Endless Parentheses",
+    "type": "page",
+    "url": "http://endlessparentheses.com/understanding-letf-and-how-it-replaces-flet.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/4ED477FF7422A9F5D0E5151F46C08768"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/55A778F2732E603AC4DAEC9864F1C07A",
+    "faviconUrl": "http://endlessparentheses.com/favicon-32x32.png",
+    "id": "55A778F2732E603AC4DAEC9864F1C07A",
+    "parentId": "4ED477FF7422A9F5D0E5151F46C08768",
+    "title": "https://platform.twitter.com/widgets/widget_iframe.f88235f49a156f8b4cab34c7bc1a0acc.html?origin=http%3A%2F%2Fendlessparentheses.com",
+    "type": "iframe",
+    "url": "https://platform.twitter.com/widgets/widget_iframe.f88235f49a156f8b4cab34c7bc1a0acc.html?origin=http%3A%2F%2Fendlessparentheses.com",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/55A778F2732E603AC4DAEC9864F1C07A"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/5D8D43C5BD2347C08A3ACD2312550F79",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "5D8D43C5BD2347C08A3ACD2312550F79",
+    "title": "Small hack to let orgmode babel JS blocks use skewer if it&#39;s currently connected",
+    "type": "page",
+    "url": "https://gist.github.com/zot/0dd34b50acf81416dd88",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/5D8D43C5BD2347C08A3ACD2312550F79"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/9833F0DA7E804D12AB8B8D320E6A1288",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "9833F0DA7E804D12AB8B8D320E6A1288",
+    "title": "bahmutov/code-snippets: Chrome DevTools code snippets",
+    "type": "page",
+    "url": "https://github.com/bahmutov/code-snippets#updating-local-code-snippets",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/9833F0DA7E804D12AB8B8D320E6A1288"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/A32DFA6058AC7687F3FB671E76198617",
+    "id": "A32DFA6058AC7687F3FB671E76198617",
+    "title": "Side panel",
+    "type": "other",
+    "url": "chrome://read-later.top-chrome/",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/A32DFA6058AC7687F3FB671E76198617"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/5DCDD39A223D2ED2A9E6F859AF3055D9",
+    "id": "5DCDD39A223D2ED2A9E6F859AF3055D9",
+    "title": "Bitwarden - Free Password Manager",
+    "type": "background_page",
+    "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/background.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/5DCDD39A223D2ED2A9E6F859AF3055D9"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/76B9468AF0A4EBBB6CC0A55148AF96EB",
+    "id": "76B9468AF0A4EBBB6CC0A55148AF96EB",
+    "title": "Keepa - Amazon Price Tracker",
+    "type": "background_page",
+    "url": "chrome-extension://neebplgakaahbhdphmkckjjcegoiijjo/chrome/content/background.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/76B9468AF0A4EBBB6CC0A55148AF96EB"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/FA87C1A0353F9067F5234E841DEE091D",
+    "id": "FA87C1A0353F9067F5234E841DEE091D",
+    "title": "Edit with Emacs",
+    "type": "background_page",
+    "url": "chrome-extension://ljobjlafonikaiipfkggjbhkghgicgoh/html/background.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/FA87C1A0353F9067F5234E841DEE091D"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/02CCFE61A4DE84D67D35DBF922DD8CBD",
+    "id": "02CCFE61A4DE84D67D35DBF922DD8CBD",
+    "title": "Disable Content-Security-Policy",
+    "type": "background_page",
+    "url": "chrome-extension://ieelmcmcagommplceebfedjlakkhpden/_generated_background_page.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/02CCFE61A4DE84D67D35DBF922DD8CBD"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/0829A7BD218780084525AD3F753AF071",
+    "id": "0829A7BD218780084525AD3F753AF071",
+    "title": "Vimium C - All by Keyboard",
+    "type": "background_page",
+    "url": "chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/_generated_background_page.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/0829A7BD218780084525AD3F753AF071"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/71A3C2113560EF7982A77DABD91F98AC",
+    "id": "71A3C2113560EF7982A77DABD91F98AC",
+    "title": "Wayback Machine",
+    "type": "background_page",
+    "url": "chrome-extension://fpnmgdkabkmnadcjpehmlllkndpkmiak/_generated_background_page.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/71A3C2113560EF7982A77DABD91F98AC"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/D7B33A1DBF26E2220D3FF0998F1F4016",
+    "id": "D7B33A1DBF26E2220D3FF0998F1F4016",
+    "title": "Tampermonkey",
+    "type": "background_page",
+    "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/background.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/D7B33A1DBF26E2220D3FF0998F1F4016"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/86E783A46A59FF6B922C6D1FBB12AC27",
+    "id": "86E783A46A59FF6B922C6D1FBB12AC27",
+    "title": "uBlock Origin",
+    "type": "background_page",
+    "url": "chrome-extension://cjpalhdlnbpafiamejdnhcphjbkeiagm/background.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/86E783A46A59FF6B922C6D1FBB12AC27"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/B05DCA67C029713BA4DFB1CD3B73AF23",
+    "faviconUrl": "https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196",
+    "id": "B05DCA67C029713BA4DFB1CD3B73AF23",
+    "title": "How to get a style attribute from a CSS class by javascript/jQuery? - Stack Overflow",
+    "type": "page",
+    "url": "https://stackoverflow.com/questions/16965515/how-to-get-a-style-attribute-from-a-css-class-by-javascript-jquery",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/B05DCA67C029713BA4DFB1CD3B73AF23"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/BAD917AF31BB83D9BA1363D897102A80",
+    "faviconUrl": "https://www.kaggle.com/static/images/favicon.ico",
+    "id": "BAD917AF31BB83D9BA1363D897102A80",
+    "title": "Getting started with Text Preprocessing | Kaggle",
+    "type": "page",
+    "url": "https://www.kaggle.com/sudalairajkumar/getting-started-with-text-preprocessing",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/BAD917AF31BB83D9BA1363D897102A80"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/CE9582979187713414BB7CF45936BD05",
+    "faviconUrl": "https://www.kaggle.com/static/images/favicon.ico",
+    "id": "CE9582979187713414BB7CF45936BD05",
+    "parentId": "BAD917AF31BB83D9BA1363D897102A80",
+    "title": "https://www.kaggleusercontent.com/kf/19201884/eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..j3n0LShdfH5U5OSAlDPprQ.P-cMuYGYwinkVYUdqoXwUkN663B5ja7Ixn6tgUcxnZj9URwk67ZSv_ET7lB6ugwhUWF1hoz9DSYma7Z8-9tO07c36MqFDpkV2aBxg8VhQraL8A1Hd0brWYZVXw9-jzUx-hNLmIIGP0PMEZ-TzwwlUBc4unsHiJVTBIIpSh-wM5j1ayYex2DxkJ1Q-te4ishUdh7j4sl33-u5_TobeLuh0u15aDlNDo2pCoagb7CqMby3AHqh2DLAEpbS7O-WmFVJqrtLxi04DJLv53BP5JTebTEhOArFhHYh0H1VY3BMroJytx3KTqTxInyoe4FQEYEvX4jm8ljnxhDE190b3oC_DhNVAeDaKLZLBCikUrEt4WUByyXKKZSCzhPv0iu0yiIjRFpyFW-vbjdxXQ0webqJYXGanWRJXG4hYSr1yq2k0mVGjYakcOWBapt3sQ7LXCazW1osxz32khEgJpzDy5DBTeL6snT1GnCOxfDz9sybs-7IufrPvC_9ULA_M851IHTYv4ueTJ_fIOzDDCaLQo2B67-y3kVpBQKTYeDn7FRXvc13XWpH__10qHxIcYXx1I1wVodEg8eckwUOSsaBUWfdVZE8k8CHdDKZFShhizSZ5RBrWqiHPdCDWE9IGyG1Cl5S9Et4MxQr5LjUpUCh-DHLNP-u2K-w_Z_enymtNn7tq1YyReX7bIIVZX4WpAlIEY7u.CXBXTv9xDMZ8V50eSxUZ7w/__results__.html?sharingControls=true",
+    "type": "iframe",
+    "url": "https://www.kaggleusercontent.com/kf/19201884/eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..j3n0LShdfH5U5OSAlDPprQ.P-cMuYGYwinkVYUdqoXwUkN663B5ja7Ixn6tgUcxnZj9URwk67ZSv_ET7lB6ugwhUWF1hoz9DSYma7Z8-9tO07c36MqFDpkV2aBxg8VhQraL8A1Hd0brWYZVXw9-jzUx-hNLmIIGP0PMEZ-TzwwlUBc4unsHiJVTBIIpSh-wM5j1ayYex2DxkJ1Q-te4ishUdh7j4sl33-u5_TobeLuh0u15aDlNDo2pCoagb7CqMby3AHqh2DLAEpbS7O-WmFVJqrtLxi04DJLv53BP5JTebTEhOArFhHYh0H1VY3BMroJytx3KTqTxInyoe4FQEYEvX4jm8ljnxhDE190b3oC_DhNVAeDaKLZLBCikUrEt4WUByyXKKZSCzhPv0iu0yiIjRFpyFW-vbjdxXQ0webqJYXGanWRJXG4hYSr1yq2k0mVGjYakcOWBapt3sQ7LXCazW1osxz32khEgJpzDy5DBTeL6snT1GnCOxfDz9sybs-7IufrPvC_9ULA_M851IHTYv4ueTJ_fIOzDDCaLQo2B67-y3kVpBQKTYeDn7FRXvc13XWpH__10qHxIcYXx1I1wVodEg8eckwUOSsaBUWfdVZE8k8CHdDKZFShhizSZ5RBrWqiHPdCDWE9IGyG1Cl5S9Et4MxQr5LjUpUCh-DHLNP-u2K-w_Z_enymtNn7tq1YyReX7bIIVZX4WpAlIEY7u.CXBXTv9xDMZ8V50eSxUZ7w/__results__.html?sharingControls=true",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/CE9582979187713414BB7CF45936BD05"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/6CFCD9425E210DE76E2A0F4F3CCF90A7",
+    "faviconUrl": "https://cdn.realpython.com/static/favicon.68cbf4197b0c.png",
+    "id": "6CFCD9425E210DE76E2A0F4F3CCF90A7",
+    "title": "Pandas Sort: Your Guide to Sorting Data in Python – Real Python",
+    "type": "page",
+    "url": "https://realpython.com/pandas-sort-python/",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/6CFCD9425E210DE76E2A0F4F3CCF90A7"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/100759E6B6A64E61E47396C4433681E8",
+    "faviconUrl": "https://www.kaggle.com/static/images/favicon.ico",
+    "id": "100759E6B6A64E61E47396C4433681E8",
+    "parentId": "E56D03AA42AF3C4E76444BB4F2B398DF",
+    "title": "https://www.kaggleusercontent.com/kf/9202990/eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..TDA-C40jqG6f0B9ViHf-uA.GhEnIaiw1-jh97ZLfMLIyOmJ3Ypm0THMv__2eWG6ZAkmfN9RnOv2tdmWZcGByp3WF0bjj3w-pzNJQZR2RlxMCOQEHX8NZuQeoR_8oksFwvv_aq8z2bdRLoTf4iToX0bUzoZtdJYbTUIIU75aBGktvm68frYJx0_8-qB3A3FbGGy83XT20yRLY3AcVzhFmsAbiEtNNjzMj2Alb77KjfaXeefHlQxp7oAqc7sCzO21G7KW7fBD4h01zYPjH7hxjz7ki1u_QkfHASyAhIay_J6lCJ-991UVk0EPjnWbCazDaB7B8bgc1E-d5nzxhZZgsSAHSlgDosHSxB1DRwH9GJFS9TITn9KJ7Kniken3LiyJBBcmEJdZsxnT4gh_GYuK5-pYveQYiO4Krb2X14cKoZCPu1mTn9cnJlCRhelDqFVcw7jc3MJaexC3p1oShI6XziJJB_wkRY0wSwelU8dlmVezIfECUe3_h81FHTL21dxvHGpTbmd_tfsv8pJ-NgSVrzuQsztZo7rzPpX8TsbxtUs8lAo7-IJChbHWaRsZI1WEHGkKHejocf4Y8HwrcxSJfIvixdf8adpWdW8cHXCw9TtKtIbczTYktV00j8F70MqdAZZKDp6aXW2VlAVihC-vL5EkIaLiA_VgEJPC4FfBaklhgp6g64tzAVtOCjsLdeR8CkXH66yfAk5QmxtHuYauTy-Y.QJQNRQh8c14DySV1IOIjWA/__results__.html?sharingControls=true",
+    "type": "iframe",
+    "url": "https://www.kaggleusercontent.com/kf/9202990/eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..TDA-C40jqG6f0B9ViHf-uA.GhEnIaiw1-jh97ZLfMLIyOmJ3Ypm0THMv__2eWG6ZAkmfN9RnOv2tdmWZcGByp3WF0bjj3w-pzNJQZR2RlxMCOQEHX8NZuQeoR_8oksFwvv_aq8z2bdRLoTf4iToX0bUzoZtdJYbTUIIU75aBGktvm68frYJx0_8-qB3A3FbGGy83XT20yRLY3AcVzhFmsAbiEtNNjzMj2Alb77KjfaXeefHlQxp7oAqc7sCzO21G7KW7fBD4h01zYPjH7hxjz7ki1u_QkfHASyAhIay_J6lCJ-991UVk0EPjnWbCazDaB7B8bgc1E-d5nzxhZZgsSAHSlgDosHSxB1DRwH9GJFS9TITn9KJ7Kniken3LiyJBBcmEJdZsxnT4gh_GYuK5-pYveQYiO4Krb2X14cKoZCPu1mTn9cnJlCRhelDqFVcw7jc3MJaexC3p1oShI6XziJJB_wkRY0wSwelU8dlmVezIfECUe3_h81FHTL21dxvHGpTbmd_tfsv8pJ-NgSVrzuQsztZo7rzPpX8TsbxtUs8lAo7-IJChbHWaRsZI1WEHGkKHejocf4Y8HwrcxSJfIvixdf8adpWdW8cHXCw9TtKtIbczTYktV00j8F70MqdAZZKDp6aXW2VlAVihC-vL5EkIaLiA_VgEJPC4FfBaklhgp6g64tzAVtOCjsLdeR8CkXH66yfAk5QmxtHuYauTy-Y.QJQNRQh8c14DySV1IOIjWA/__results__.html?sharingControls=true",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/100759E6B6A64E61E47396C4433681E8"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/E56D03AA42AF3C4E76444BB4F2B398DF",
+    "faviconUrl": "https://www.kaggle.com/static/images/favicon.ico",
+    "id": "E56D03AA42AF3C4E76444BB4F2B398DF",
+    "title": "Beginners Guide to Text Generation using LSTMs | Kaggle",
+    "type": "page",
+    "url": "https://www.kaggle.com/shivamb/beginners-guide-to-text-generation-using-lstms",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/E56D03AA42AF3C4E76444BB4F2B398DF"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/9DD2E4FB82FF11AEA380226E0BF1EE91",
+    "faviconUrl": "https://www.youtube.com/s/desktop/4eebcda0/img/favicon_32x32.png",
+    "id": "9DD2E4FB82FF11AEA380226E0BF1EE91",
+    "title": "YouTube",
+    "type": "page",
+    "url": "https://www.youtube.com/watch?v=t0mhvd3-60Y&t=956s",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/9DD2E4FB82FF11AEA380226E0BF1EE91"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/DBD033511AE6836F6DCA59D80FDCE23C",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "DBD033511AE6836F6DCA59D80FDCE23C",
+    "title": "preprocessing VoxCele2 is not working · Issue #488 · CorentinJ/Real-Time-Voice-Cloning",
+    "type": "page",
+    "url": "https://github.com/CorentinJ/Real-Time-Voice-Cloning/issues/488",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/DBD033511AE6836F6DCA59D80FDCE23C"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/E233E26C30ABDEF1A71789AFF497A5B7",
+    "faviconUrl": "https://docs.python.org/3/_static/py.png",
+    "id": "E233E26C30ABDEF1A71789AFF497A5B7",
+    "title": "8. Errors and Exceptions — Python 3.9.7 documentation",
+    "type": "page",
+    "url": "https://docs.python.org/3/tutorial/errors.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/E233E26C30ABDEF1A71789AFF497A5B7"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/52E55E4683D4E049AEFD60D96F38013F",
+    "faviconUrl": "https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196",
+    "id": "52E55E4683D4E049AEFD60D96F38013F",
+    "title": "How to get rid of specific warning messages in python while keeping all other warnings as normal? - Stack Overflow",
+    "type": "page",
+    "url": "https://stackoverflow.com/questions/9134795/how-to-get-rid-of-specific-warning-messages-in-python-while-keeping-all-other-wa",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/52E55E4683D4E049AEFD60D96F38013F"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/D72A27EF242FA1BB5C4F9D04DFC8A9E0",
+    "faviconUrl": "https://docs.python.org/3/_static/py.png",
+    "id": "D72A27EF242FA1BB5C4F9D04DFC8A9E0",
+    "title": "warnings — Warning control — Python 3.9.7 documentation",
+    "type": "page",
+    "url": "https://docs.python.org/3/library/warnings.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/D72A27EF242FA1BB5C4F9D04DFC8A9E0"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/FCBEC971FAED02B792F7A7E0511A435D",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "FCBEC971FAED02B792F7A7E0511A435D",
+    "title": "Real-Time-Voice-Cloning/requirements.txt at master · CorentinJ/Real-Time-Voice-Cloning",
+    "type": "page",
+    "url": "https://github.com/CorentinJ/Real-Time-Voice-Cloning/blob/master/requirements.txt",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/FCBEC971FAED02B792F7A7E0511A435D"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/C4609C6AB747DA5744D858083BE11735",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "C4609C6AB747DA5744D858083BE11735",
+    "title": "Issues · CorentinJ/Real-Time-Voice-Cloning",
+    "type": "page",
+    "url": "https://github.com/CorentinJ/Real-Time-Voice-Cloning/issues?q=pysoundfile",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/C4609C6AB747DA5744D858083BE11735"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/9CB4606550B016B2C738FAB363CC807C",
+    "faviconUrl": "https://www.google.com/favicon.ico",
+    "id": "9CB4606550B016B2C738FAB363CC807C",
+    "title": "evil paste doom emacs custom get selection - Google Search",
+    "type": "page",
+    "url": "https://www.google.com/search?q=evil+paste+doom+emacs+custom+get+selection&sxsrf=AOaemvLhzW1XUyBMbx3W6nOzx3LzDTJ0Gg%3A1630725386901&ei=CuUyYZ6lNqaC9PwPyfaD-A8&oq=evil+paste+doom+emacs+custom+get+selection&gs_lcp=Cgdnd3Mtd2l6EAM6BwgAEEcQsAM6BAgjECdKBAhBGABQ6hRYyRhg2hloAXAAeACAAaEBiAHcBZIBAzAuNZgBAKABAcgBCMABAQ&sclient=gws-wiz&ved=0ahUKEwie0qW7reTyAhUmAZ0JHUn7AP8Q4dUDCA4&uact=5",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/9CB4606550B016B2C738FAB363CC807C"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/F1CA5D59C9634CF4BF8C000674B132C1",
+    "id": "F1CA5D59C9634CF4BF8C000674B132C1",
+    "title": "Data.Monoid",
+    "type": "page",
+    "url": "https://hackage.haskell.org/package/base-4.15.0.0/docs/Data-Monoid.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/F1CA5D59C9634CF4BF8C000674B132C1"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/7A0205B7309B13D5CA53F599AEBF7682",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "7A0205B7309B13D5CA53F599AEBF7682",
+    "title": "ValueError: frames must be specified for non-seekable files · Issue #76 · CorentinJ/Real-Time-Voice-Cloning",
+    "type": "page",
+    "url": "https://github.com/CorentinJ/Real-Time-Voice-Cloning/issues/76#issuecomment-529013562",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/7A0205B7309B13D5CA53F599AEBF7682"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/BCE1EBF571093B48F92B9700BE965BE8",
+    "faviconUrl": "https://github.githubassets.com/favicons/favicon.svg",
+    "id": "BCE1EBF571093B48F92B9700BE965BE8",
+    "title": "Real-Time-Voice-Cloning/preprocess.py at master · CorentinJ/Real-Time-Voice-Cloning",
+    "type": "page",
+    "url": "https://github.com/CorentinJ/Real-Time-Voice-Cloning/blob/master/encoder/preprocess.py#L114",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/BCE1EBF571093B48F92B9700BE965BE8"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/ECA35EACB12332A96C36370D6F13C260",
+    "id": "ECA35EACB12332A96C36370D6F13C260",
+    "title": "Advanced examples — librosa 0.8.1 documentation",
+    "type": "page",
+    "url": "https://librosa.org/doc/latest/advanced.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/ECA35EACB12332A96C36370D6F13C260"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/9E636F817EEC72FD782B322ABCBF0F6A",
+    "id": "9E636F817EEC72FD782B322ABCBF0F6A",
+    "title": "Tutorial — librosa 0.8.1 documentation",
+    "type": "page",
+    "url": "https://librosa.org/doc/latest/tutorial.html",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/9E636F817EEC72FD782B322ABCBF0F6A"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/D77CA1FC447B571B0204FDDFA219ED53",
+    "faviconUrl": "https://www.2daygeek.com/favicon-32x32.png",
+    "id": "D77CA1FC447B571B0204FDDFA219ED53",
+    "title": "How To Count The Files By Extension In Linux? | 2DayGeek",
+    "type": "page",
+    "url": "https://www.2daygeek.com/how-to-count-files-by-extension-in-linux/",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/D77CA1FC447B571B0204FDDFA219ED53"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/868D853E0146E636C1A72D221B78F744",
+    "faviconUrl": "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png",
+    "id": "868D853E0146E636C1A72D221B78F744",
+    "title": "xmonad : the tiling window manager",
+    "type": "page",
+    "url": "https://old.reddit.com/r/xmonad/",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/868D853E0146E636C1A72D221B78F744"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/42ED16B2BF7FDEE1E9B724B64EC2D520",
+    "faviconUrl": "https://web.archive.org/web/20201205115259im_/https://cdn.sstatic.net/Sites/datascience/Img/favicon.ico?v=9e7eaff363e8",
+    "id": "42ED16B2BF7FDEE1E9B724B64EC2D520",
+    "title": "machine learning - How can I detect blocks of text from scanned document images - Data Science Stack Exchange",
+    "type": "page",
+    "url": "https://web.archive.org/web/20201205115259/https://datascience.stackexchange.com/questions/47302/how-can-i-detect-blocks-of-text-from-scanned-document-images",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/42ED16B2BF7FDEE1E9B724B64EC2D520"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/383EB1F60DD658B8062411A8398BE691",
+    "id": "383EB1F60DD658B8062411A8398BE691",
+    "title": "Service Worker chrome-extension://gnbloebgdbhjdpalamdoonpnmpjgebfe/background.js",
+    "type": "service_worker",
+    "url": "chrome-extension://gnbloebgdbhjdpalamdoonpnmpjgebfe/background.js",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/383EB1F60DD658B8062411A8398BE691"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/1765FD2369427D4721CEA74EE37038C1",
+    "id": "1765FD2369427D4721CEA74EE37038C1",
+    "title": "Service Worker https://www.youtube.com/sw.js",
+    "type": "service_worker",
+    "url": "https://www.youtube.com/sw.js",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/1765FD2369427D4721CEA74EE37038C1"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/CF5F11503EB57F45B58FD6BFB0F35D4C",
+    "id": "CF5F11503EB57F45B58FD6BFB0F35D4C",
+    "title": "github-socket-worker-v2-8b5b4cea86a750f2f68f38fc7dfd9fd81d94ebeb8c4d1c7f9269dc94ca963255",
+    "type": "shared_worker",
+    "url": "https://github.com/socket-worker-7c2abeb0.js",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/CF5F11503EB57F45B58FD6BFB0F35D4C"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=localhost:9022/devtools/page/0F1594F4A16DC949C862DD6106C27771",
+    "id": "0F1594F4A16DC949C862DD6106C27771",
+    "title": "github-socket-worker-v2-8b5b4cea86a750f2f68f38fc7dfd9fd81d94ebeb8c4d1c7f9269dc94ca963255",
+    "type": "shared_worker",
+    "url": "https://gist.github.com/socket-worker-7c2abeb0.js",
+    "webSocketDebuggerUrl": "ws://localhost:9022/devtools/page/0F1594F4A16DC949C862DD6106C27771"
+  }
+]
+
+// GET http://localhost:9022/json
+// HTTP/1.1 200 OK
+// Content-Length:28779
+// Content-Type:application/json; charset=UTF-8
+// Request duration: 0.065944s
+,#+END_SRC
+#+end_example
+
+Enviar comando:
+#+begin_src emacs-lisp
+(defvar *devtools-is-open* nil
+  "Should reflect the websocket status")
+
+(defvar *devtools-last-message* nil
+  "Last message received.")
+
+(defvar *devtools*
+  (websocket-open "ws://127.0.0.1:9022/devtools/browser/1a1d8b9e-ba2c-43f7-8e40-908462c587f1"
+    :on-connect   (lambda (ws) (setq *devtools-is-open* t))
+    :on-message   (lambda (ws frame)
+      (setq *devtools-last-message* (websocket-frame-text frame)))
+    :on-close     (lambda (ws) (setq *devtools-is-open* nil))))
+#+end_src
+
+#+RESULTS:
+: #s(websocket connecting nil identity (lambda (ws frame) (setq *devtools-last-message* (websocket-frame-text frame))) (lambda (ws) (setq *devtools-is-open* nil)) websocket-default-error-handler nil nil nil "ws://127.0.0.1:9022/devtools/browser/1a1d8b9e-ba2c-43f7-8e40-908462c587f1" nil nil #<process websocket to ws://127.0.0.1:9022/devtools/browser/1a1d8b9e-ba2c-43f7-8e40-908462c587f1> nil "htf9q6SdkIiDJYunqtIW+7sWRZU=" nil)
+
+Vemos que el socket se ha creado
+#+begin_src emacs-lisp
+*devtools*
+#+end_src
+
+#+RESULTS:
+: #s(websocket open nil identity (lambda (ws frame) (setq *devtools-last-message* (websocket-frame-text frame))) (lambda (ws) (setq *devtools-is-open* nil)) websocket-default-error-handler nil nil nil "ws://127.0.0.1:9022/devtools/browser/1a1d8b9e-ba2c-43f7-8e40-908462c587f1" nil nil #<process websocket to ws://127.0.0.1:9022/devtools/browser/1a1d8b9e-ba2c-43f7-8e40-908462c587f1> nil "htf9q6SdkIiDJYunqtIW+7sWRZU=" nil)
+
+El estatus del socket
+#+begin_src emacs-lisp
+(websocket-ready-state *devtools*)
+#+end_src
+
+#+RESULTS:
+: open
+
+#+begin_src emacs-lisp
+(websocket-openp *devtools*)
+#+end_src
+
+#+RESULTS:
+| open | run |
+
+El ultimo mensaje
+#+begin_src emacs-lisp
+*devtools-last-message*
+#+end_src
+
+#+RESULTS:
+
+(Esta vacio)
+
+Ahora vamos a comunicarnos con el, para eso vamos a utilizar la integracion con
+JSON que posee emacs, podemos convertir entre S-exps y json sin pestañear.
+
+#+name: serialized
+#+begin_src emacs-lisp
+(json-serialize
+ '(:id 1
+   :method "Browser.getVersion"))
+#+end_src
+
+#+RESULTS: serialized
+: {"id":1,"method":"Browser.getVersion"}
+
+Lo enviamos:
+#+begin_src emacs-lisp :var serialized=serialized :wrap SRC json :post json-pp(*this*)
+(websocket-send-text *devtools* serialized)
+*devtools-last-message*
+#+end_src
+
+#+RESULTS:
+#+begin_SRC json
+{
+  "result": {
+    "jsVersion": "9.4.146.8",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.20 Safari/537.36",
+    "revision": "@a8eaffa97afee85c8d3374b2c9198974a159ebee",
+    "product": "Chrome/94.0.4606.20",
+    "protocolVersion": "1.3"
+  },
+  "id": 1
+}
+#+end_SRC
+
+#+name: json-pp
+#+begin_src emacs-lisp :var json="""
+(with-temp-buffer
+  (insert json)
+  (json-mode-beautify)
+  (buffer-string))
+#+end_src
+
+#+begin_src emacs-lisp :wrap SRC json :post json-pp(*this*)
+(websocket-send-text
+ ,*devtools*
+ (json-serialize
+  '(:id 2
+    :method "Target.setDiscoverTargets"
+    :params (:discover t))))
+
+(sleep-for 0.5)
+
+,*devtools-last-message*
+#+end_src
+
+#+RESULTS:
+#+begin_SRC json
+{
+  "params": {
+    "targetInfo": {
+      "browserContextId": "451848FAC04912E88CEC06F26DB0898F",
+      "canAccessOpener": false,
+      "attached": false,
+      "url": "chrome-extension://gnbloebgdbhjdpalamdoonpnmpjgebfe/background.js",
+      "title": "Service Worker chrome-extension://gnbloebgdbhjdpalamdoonpnmpjgebfe/background.js",
+      "type": "service_worker",
+      "targetId": "38C8EA58ADA7E758E157306065B8E1AF"
+    }
+  },
+  "method": "Target.targetCreated"
+}
+#+end_SRC
+
+** Referencias
+https://orgmode.org/manual/Results-of-Evaluation.html
+https://github.com/ahyatt/emacs-websocket/blob/master/websocket-functional-test.el
+https://chromedevtools.github.io/devtools-protocol/tot/Browser/
+https://github.com/aslushnikov/getting-started-with-cdp <- este esta chido
+* 10:28 Exportar a HTML con tema de Emacs
+#+begin_src emacs-lisp
+(require 'org-html-themify)
+
+(setq
+ org-html-themify-themes
+ '((dark . doom-one)
+   (light . doom-one-light))
+ custom-enabled-themes
+ '())
+
+(add-hook 'org-mode-hook 'org-html-themify-mode t t)
+#+end_src
+
+#+RESULTS:
+| t | org-html-themify-mode |
+
+#+begin_src emacs-lisp
+(setq-local theme (symbol-plist 'doom-one))
+#+end_src
+
+* 10:35 Abrir archivos HTML en el navegador
+#+begin_src emacs-lisp
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program  "google-chrome-unstable")
+#+end_src
+
+#+RESULTS:
+: google-chrome-unstable
+
+#+begin_src emacs-lisp
+(setcdr (assoc "\\.x?html?\\'" org-file-apps) 'browse-url-generic)
+#+end_src
+
+#+RESULTS:
+: browse-url-generic

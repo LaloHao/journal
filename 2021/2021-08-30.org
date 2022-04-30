@@ -1,0 +1,522 @@
+#+TITLE: 30 Aug 30 de 08mmm 2021
+* 01:26 Remover propiedades del texto en Emacs
+#+begin_src emacs-lisp
+(let ((inhibit-read-only t))
+  (dolist (o (overlays-in (window-start) (window-end))) 
+    (delete-overlay o))
+  (set-text-properties (point-min) (point-max) nil))
+#+end_src
+* 02:46 Problemas con xmonad + ghc + nix
+:PROPERTIES:
+:header-args:            :exports both
+:END:
+Inspecting =xmonad=
+#+begin_src bash
+which xmonad
+#+end_src
+
+#+RESULTS:
+: /home/hao/.nix-profile/bin/xmonad
+
+I know it's in my profile..., but where?
+
+#+begin_src bash
+which xmonad | xargs readlink
+#+end_src
+
+#+RESULTS:
+: /nix/store/yx0kb7i209ffh20qmxpbvmllb32lq7rr-home-manager-path/bin/xmonad
+
+Ok..., installed by =home-manager=, but where is it?
+
+#+begin_src bash
+which xmonad | xargs readlink | xargs readlink
+#+end_src
+
+#+RESULTS:
+: /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xmonad
+
+^ Save that path, you can see it's actually pointing to the =xmonad= binary:
+
+#+begin_src bash
+file /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xmonad
+#+end_src
+
+#+RESULTS:
+: /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xmonad: symbolic link to /nix/store/0lxxi3hrs49fiil29xw6gjx09ad3nf2n-xmonad-0.15/bin/xmonad
+
+Now enter the monad (with packages):
+#+begin_src bash :session pure :results output
+nix-shell -p xmonad-with-packages
+#+end_src
+
+#+RESULTS:
+:  03:00:47 
+
+For starters, the derivation is pointing elsewhere, not to my home-environment,
+but directly to the nix-store:
+
+#+begin_src bash :session pure :results output
+which xmonad
+#+end_src
+
+#+RESULTS:
+: /nix/store/6n1wh9ky7ydbd2ii5877nly9xbrqz4m9-xmonad-with-packages-8.10.6/bin/xmonad
+:  03:00:50 
+
+And we now see not a binary file but a bash script
+#+begin_src bash :session pure :results output
+file /nix/store/6n1wh9ky7ydbd2ii5877nly9xbrqz4m9-xmonad-with-packages-8.10.6/bin/xmonad
+#+end_src
+
+#+RESULTS:
+: /nix/store/6n1wh9ky7ydbd2ii5877nly9xbrqz4m9-xmonad-with-packages-8.10.6/bin/xmonad: a /nix/store/dpjnjrqbgbm8a5wvi1hya01vd8wyvsq4-bash-4.4-p23/bin/bash -e script, ASCII text executable
+:  03:02:54 
+
+And if you look at the contents, you'll see that it's actually using the same
+xmonad from above, except it adds all the `extraPackages` locations for us:
+#+begin_src bash :session pure :results output
+which xmonad | xargs cat
+#+end_src
+
+#+RESULTS:
+:
+: ! /nix/store/dpjnjrqbgbm8a5wvi1hya01vd8wyvsq4-bash-4.4-p23/bin/bash -e
+: export NIX_GHC='/nix/store/sca07cyap7rqkxk4c7sqkvn94bsfaaiz-ghc-8.10.6-with-packages/bin/ghc'
+: export XMONAD_XMESSAGE='/nix/store/jg3adhj3kpqm8dcrgb95nn5c5k5z61yx-xmessage-1.0.5/bin/xmessage'
+: exec "/nix/store/sca07cyap7rqkxk4c7sqkvn94bsfaaiz-ghc-8.10.6-with-packages/bin/xmonad"  "@"
+:  03:10:55 
+
+Let's compile
+#+begin_src bash :session pure :results output
+xmonad --recompile
+#+end_src
+
+#+RESULTS:
+: XMonad will use ghc to recompile, because "/home/hao/.xmonad/build" does not exist.
+: XMonad recompilation process exited with success!
+:  03:12:03 
+
+But out of our safe space instead
+#+begin_src bash :session pure :results output
+exit
+#+end_src
+
+#+RESULTS:
+:
+:  03:12:09 
+
+#+begin_src bash :results output
+xmonad --recompile 2>&1
+#+end_src
+
+#+RESULTS:
+: XMonad will use ghc to recompile, because "/home/hao/.xmonad/build" does not exist.
+: Error detected while loading xmonad configuration file: /home/hao/.xmonad/xmonad.hs
+:
+: xmonad.hs:4:1: error:
+:     Could not find module ‘XMonad’
+:     Perhaps you meant DsMonad (needs flag -package-key ghc-8.10.6)
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:   |
+: 4 | import           XMonad                                 hiding (config,workspaces)
+:   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:8:1: error:
+:     Could not find module ‘XMonad.Hooks.DynamicLog’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:   |
+: 8 | import           XMonad.Hooks.DynamicLog
+:   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:9:1: error:
+:     Could not find module ‘XMonad.Hooks.ManageDocks’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:   |
+: 9 | import           XMonad.Hooks.ManageDocks
+:   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:10:1: error:
+:     Could not find module ‘XMonad.StackSet’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 10 | import qualified XMonad.StackSet                 as W
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:11:1: error:
+:     Could not find module ‘XMonad.ManageHook’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 11 | import           XMonad.ManageHook
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:12:1: error:
+:     Could not find module ‘XMonad.Util.NamedScratchpad’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 12 | import           XMonad.Util.NamedScratchpad
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:13:1: error:
+:     Could not find module ‘XMonad.Util.EZConfig’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 13 | import           XMonad.Util.EZConfig
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:14:1: error:
+:     Could not find module ‘XMonad.Actions.CycleWS’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 14 | import           XMonad.Actions.CycleWS                        (shiftTo, moveTo, Direction1D(..), WSType(..))
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:15:1: error:
+:     Could not find module ‘XMonad.Actions.Commands’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 15 | import           XMonad.Actions.Commands
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:16:1: error:
+:     Could not find module ‘XMonad.Actions.ShowText’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 16 | import           XMonad.Actions.ShowText
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:17:1: error:
+:     Could not find module ‘XMonad.Layout.Fullscreen’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 17 | import           XMonad.Layout.Fullscreen
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:18:1: error:
+:     Could not find module ‘XMonad.Layout.NoBorders’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 18 | import           XMonad.Layout.NoBorders
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:19:1: error:
+:     Could not find module ‘XMonad.Hooks.ManageHelpers’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 19 | import           XMonad.Hooks.ManageHelpers
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:20:1: error:
+:     Could not find module ‘XMonad.Actions.CopyWindow’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 20 | import           XMonad.Actions.CopyWindow
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:22:1: error:
+:     Could not find module ‘XMonad.Actions.Navigation2D’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 22 | import           XMonad.Actions.Navigation2D
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:23:1: error:
+:     Could not find module ‘XMonad.Util.Run’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 23 | import           XMonad.Util.Run                               (spawnPipe)
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:24:1: error:
+:     Could not find module ‘XMonad.Util.NamedWindows’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 24 | import           XMonad.Util.NamedWindows                      (getName, unName)
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:27:1: error:
+:     Could not find module ‘XMonad.Util.ExtensibleState’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 27 | import qualified XMonad.Util.ExtensibleState     as XS
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:28:1: error:
+:     Could not find module ‘XMonad.Util.Timer’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 28 | import           XMonad.Util.Timer
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:31:1: error:
+:     Could not find module ‘XMonad.Actions.UpdateFocus’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 31 | import           XMonad.Actions.UpdateFocus
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:32:1: error:
+:     Could not find module ‘XMonad.Layout.SimpleFloat’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 32 | import           XMonad.Layout.SimpleFloat
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:33:1: error:
+:     Could not find module ‘XMonad.Layout.PerWorkspace’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 33 | import           XMonad.Layout.PerWorkspace                    (onWorkspace)
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:34:1: error:
+:     Could not find module ‘XMonad.Layout.Magnifier’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 34 | import           XMonad.Layout.Magnifier         as Mag
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:35:1: error:
+:     Could not find module ‘XMonad.Util.Loggers’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 35 | import           XMonad.Util.Loggers
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:36:1: error:
+:     Could not find module ‘XMonad.Layout.LayoutCombinators’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 36 | import           XMonad.Layout.LayoutCombinators               (JumpToLayout(..))
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:39:1: error:
+:     Could not find module ‘XMonad.Actions.FloatSnap’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 39 | import           XMonad.Actions.FloatSnap
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:40:1: error:
+:     Could not find module ‘XMonad.Util.WorkspaceCompare’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 40 | import qualified XMonad.Util.WorkspaceCompare    as W
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: xmonad.hs:42:1: error:
+:     Could not find module ‘XMonad.Layout.Gaps’
+:     Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+:    |
+: 42 | import           XMonad.Layout.Gaps
+:    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:
+: Please check the file for errors.
+:
+
+* 03:46 Regexps en emacs
+** Referencias
+https://www.emacswiki.org/emacs/RegularExpression
+https://www.emacswiki.org/emacs/AlignCommands
+* 03:50 Continuando con los diccionarios
+  Del diccionario de la RAE version PDF se pueden extraer las definiciones con
+  OCR (lease tesseract)
+** Referencias
+https://www.simplifiedpython.net/pdf-to-text-python-extract-text-from-pdf-documents-using-pypdf2-module/
+https://guides.library.illinois.edu/c.php?g=347520&p=4121426
+https://pypi.org/project/pdfminer/
+
+Paga:
+https://towardsdatascience.com/extracting-text-from-scanned-pdf-using-pytesseract-open-cv-cd670ee38052
+https://betterprogramming.pub/how-to-convert-pdfs-into-searchable-key-words-with-python-85aab86c544f
+https://towardsdatascience.com/pdf-text-extraction-in-python-5b6ab9e92dd
+* 10:36 Ring a bell when a shell command finishes
+
+#+begin_src sh
+tput bel
+#+end_src
+
+#+begin_src sh
+echo -e "\07"
+#+end_src
+
+** References
+* 11:24 Continuando con el diccionario
+:PROPERTIES:
+:header-args:bash: :session rae-unicode-pdf :results output :exports both :cmdline --noprofile --norc
+:END:
+Extraido del PDF de la rae:
+
+** Signos
+- *: Forma hipotética
+- ®: Marca registrada (véase «La vigesimotercera edición del Diccionario ... »).
+- -: Signo que sustituye al lema (véase «Advertencias»).
+- 11: Separación entre acepciones dentro de un mismo bloque, separación entre
+  formas complejas, separación entre acepciones de una misma forma compleja.
+- (11 ): Contiene un enunciado que expresa condensadamente determinada acepción
+  de otro artículo.
+- +: Separación entre enunciados, dentro del paréntesis que subsigue al lema.
+- •: Comienzo de un bloque de acepciones que comparten categoría
+gramatical.
+- o: Comienzo de un bloque de acepciones que comparten
+subcategoría gramatical.
+- •: Comienzo del bloque de formas complejas.
+- O: Separación entre las dos secciones que puede haber dentro de las formas
+  complejas (véase «La vigesimotercera edición del
+Diccionario... »).
+- >: Comienzo, al final del artículo, del bloque de envíos a otros
+lemas
+
+◆
+
+#+begin_src bash
+echo hi
+#+end_src
+
+#+RESULTS:
+: hi
+* 12:43 Colorear ANSII :no_export:
+#+begin_src emacs-lisp
+(defun ek/babel-ansi ()
+  (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
+    (save-excursion
+      (goto-char beg)
+      (when (looking-at org-babel-result-regexp)
+        ;; (save-excursion
+        ;;   (goto-char (1- (org-babel-result-end)))
+        ;;   (delete-region (line-beginning-position) (line-end-position)))
+        (let ((end (org-babel-result-end))
+              (ansi-color-context-region nil))
+          (ansi-color-apply-on-region beg end))))))
+
+(add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
+(remove-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
+#+end_src
+* 12:43 Quitando el prompt del shell al ejecutar codigo desde org mode
+Agrega esto al header:
+#+begin_src org
+:PROPERTIES:
+:header-args:bash: :session rae-unicode-pdf :results output :exports both :cmdline --noprofile --norc
+:END:
+#+end_src
+* 22:45 Previsualizando powerline
+#+begin_src bash :results output :session powerline
+p=$(powerline)
+printf '%s' "${p@P}"
+#+end_src
+
+#+RESULTS:
+:results:
+
+
+  hao  emma  ~  journal  2021  $   23:05:06  ~  …  2021  $ 
+ org_babel_sh_eoe
+:end:
+* 23:11 Propertized text as elisp source block result
+#+begin_src emacs-lisp :results silent :lexical t
+(require 'find-func)
+(with-current-buffer
+    (find-file-noselect (find-library-name "ob-core.el"))
+  ;; This is a hack.
+  ;; `org-no-properties' is defined by `defsubst' and the byte-compiler replaces the symbol with the lambda.
+  ;; We need the definition of `org-babel-insert-result' containing the symbol `org-no-properties'.
+  ;; Therefore, we eval the defun for `org-babel-insert-result' in the source file.
+  (goto-char (point-min))
+  (re-search-forward "(defun org-babel-insert-result")
+  (eval-defun nil))
+
+(defun org-babel-execute-with-text-properties (fun &optional arg info params)
+  "Handler for header argument :text-properties.
+Intended as :around advice for `org-babel-execute-src-block'.
+Calls FUN with ARG, INFO and PARAMS.
+If the alist (org-info- contains an yes- or t-entry for 'text-properties
+Function `org-no-properties' is modified to a projection of its string argument."
+  ;; (message "arg: %s"    arg)
+  ;; (message "info: %s"   info)
+  ;; (message "params: %s" params)
+  (setq params (org-combine-plists params (nth 2 info)))
+  ;; (message "combined: %s" params)
+  ;; (let* ((kv (assoc-string :text-properties params))
+  ;;        (v  (cdr kv))
+  ;;         (p (assoc-string v '(yes t))))
+  ;;   (message "kv: %s" kv)
+  ;;   (message "v: %s" v)
+  ;;   (message "p: %s" p))
+  (assoc-string (cdr (assoc-string :text-properties params)) '(yes t))
+  (if (assoc-string (cdr (assoc-string :text-properties params)) '(yes t))
+    (cl-letf (((symbol-function 'org-no-properties) (lambda (str &rest _ignore)
+                                                      (message "HELLOO %s" str)
+                                                      str)))
+      (funcall fun arg info params))
+    (funcall fun arg info params)))
+
+(defun org+-babel-insert-result-with-text-properties (fun result result-params &rest args)
+  "Avoid removing text properties in `org-babel-insert-result'.
+
+Add the new result type \"raw-props\" to Org source blocks.
+With this result type text properties are not removed from the result.
+
+This is an :around advice for `org-babel-insert-result' as FUN.
+RESULT, RESULT-PARAMS, and ARGS are passed to FUN."
+  (message "result: %s" result)
+  (message "result-params: %s" result-params)
+  (message "args: %s" args)
+  (if (or (member "props" result-params)
+      (member "properties" result-params))
+      (cl-letf* (((symbol-function 'org-no-properties)
+          (lambda (str &rest _args) str)))
+    (apply fun result
+           (delete "properties" (remove "props" result-params))
+           args))
+    (apply fun result result-params args)))
+
+(advice-remove 'org-babel-insert-result #'org+-babel-insert-result-with-text-properties)
+(advice-add 'org-babel-insert-result :around #'org+-babel-insert-result-with-text-properties)
+
+(advice-remove 'org-babel-execute-src-block #'org-babel-execute-with-text-properties)
+(advice-add 'org-babel-execute-src-block :around #'org-babel-execute-with-text-properties)
+
+(add-to-list 'char-property-alias-alist '(display my-display))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :results raw drawer props
+(let ((svg (svg-create 100 100 :stroke-color "black")))
+  (svg-line svg 50 10 50 90)
+  (svg-line svg 10 50 90 50)
+  (svg-circle svg 50 50 25 :stroke-color "red" :fill-color "blue")
+  (propertize "x" 'my-display (svg-image svg)))
+#+END_SRC
+
+#+RESULTS:
+:results:
+x
+:end:
+
+#+BEGIN_SRC emacs-lisp :results raw drawer props
+(propertize "function" 'font-lock-face 'font-lock-function-name-face 'my-display "no")
+#+END_SRC
+
+#+RESULTS:
+:results:
+function
+:end:
+
+#+BEGIN_SRC emacs-lisp :file 2020-02-14/test.svg :exports results
+(let ((svg (svg-create 100 100 :stroke-color "black")))
+  (svg-line svg 50 10 50 90)
+  (svg-line svg 10 50 90 50)
+  (svg-circle svg 50 50 25 :stroke-color "red" :fill-color "blue")
+  (with-temp-buffer
+    (svg-print svg)
+    (buffer-substring-no-properties (point-min) (point-max))))
+#+END_SRC
+
+#+RESULTS:
+: <svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" stroke="black"> <line x1="50" x2="50" y1="10" y2="90"></line> <line x1="10" x2="90" y1="50" y2="50"></line> <circle cx="50" cy="50" r="25" fill="blue" stroke="red"></circle></svg>
+
+** References
+https://emacs.stackexchange.com/questions/56289/why-adding-the-display-property-does-not-work-on-some-part-of-a-file-while-it-w
+https://preview.redd.it/pbxcdcwsleh41.png?width=648&format=png&auto=webp&s=3db69167338bffdd0bc5c4eb165adc5c22b3c8cf
+https://emacs.stackexchange.com/questions/57432/why-does-org-mode-elisp-evaluation-not-print-text-properties
+https://old.reddit.com/r/emacs/comments/f3va1f/text_properties_in_results_of_orgmode_source/
+https://emacs.stackexchange.com/questions/35364/how-do-i-attach-a-custom-function-to-process-org-mode-babel-shell-output

@@ -1,0 +1,24 @@
+#+TITLE: 31 Aug 31 de 08mmm 2021
+* 04:24 Exportar org-mode con colores propios del tema
+** Referencias
+file:///home/hao/journal/2021/2021-08-30.html
+https://github.com/DogLooksGood/org-html-themify/blob/master/org-html-themify.js
+https://github.com/DogLooksGood/org-html-themify
+* 04:25 How to embed svg output of org-mode src block as inline svg in html export?
+https://emacs.stackexchange.com/questions/29871/how-to-embed-svg-output-of-org-mode-src-block-as-inline-svg-in-html-export
+* 21:54 line-numbers
+** Fuentes usadas
+- Linea actual: `line-number-current-line` #bbc2cf
+- Otras: `line-number` #3f444a
+- `line-number-major-tick` <- `display-line-numbers-major-tick`
+- `line-number-minor-tick` <- `display-line-numbers-minor-tick`
+
+[[file:~/dev/dotfiles/doom.d/config.el::(after! display-line-numbers][Refer to documentation]]
+#+begin_src emacs-lisp
+(set-face-attribute 'line-number nil
+  :foreground "#777777")
+
+(set-face-attribute 'line-number-current-line nil
+  :foreground "#dbe5e5"
+  :weight 'bold)
+#+end_src

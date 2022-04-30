@@ -1,0 +1,32 @@
+#+TITLE: 28 Aug 28 de 08mmm 2021
+* 18:58 Sobre los diccionarios
+Todo empezo cuando intentaba utilizar el corrector ortografico (flyspell) en mi
+editor de texto (Emacs) en modo multi-idioma.
+
+Nixpkgs no instalo correctamente el diccionario español de Hunspell, me puse a
+investigar porque y termine viendo /downloaders/ de la RAE.
+
+** Internals de la pagina de la RAE (o internals del lenguaje)
+#+begin_quote
+En lingüística, el lema (o ítem lexical) es una unidad autónoma constituyente del léxico de un idioma.
+#+end_quote
+
+Para nosotros los mortales
+[[file:images/screenshot-01.png]]
+
+[[file:images/screenshot-02.png]]
+
+[[file:./images/screenshot-03.png]]
+
+[[file:./images/screenshot-04.png]]
+
+
+Cada palabra tiene un id, pero parece un hash
+
+Does this work?
+
+Reverse engineering:
+https://reverseengineering.stackexchange.com/questions/21607/determining-the-hash-algorithm-used
+
+Ejemplo de crawler:
+https://github.com/JorgeDuenasLerin/diccionario-espanol-txt/blob/master/src/rae_downloader.py

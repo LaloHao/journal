@@ -1,0 +1,66 @@
+#+TITLE: viernes 01 de octubre 2021, semana 39
+* 21:34 How to handle SIGWINCH in Haskell
+#+begin_src elisp :results verbatim :wrap src elisp
+(add-to-list 'evil-insert-state-modes 'error-mode)
+#+end_src
+
+#+RESULTS:
+#+begin_src elisp
+(error-mode comint-mode erc-mode eshell-mode geiser-repl-mode gud-mode inferior-apl-mode inferior-caml-mode inferior-emacs-lisp-mode inferior-j-mode inferior-python-mode inferior-scheme-mode inferior-sml-mode internal-ange-ftp-mode prolog-inferior-mode reb-mode shell-mode slime-repl-mode term-mode wdired-mode)
+#+end_src
+
+#+begin_src haskell
+import System.Posix.Signals
+import System.Posix.Signals.Exts
+
+handler :: _k
+handler = undefined
+
+main :: IO ()
+main = do
+  installHandler sigWINCH (Catch handler) Nothing
+#+end_src
+
+#+RESULTS:
+#+begin_src shell
+Prelude System.Posix.Signals System.Posix.Signals.Exts>
+<interactive>:16:1-7: error: Variable not in scope: handler
+#+end_src
+* 22:20 Delete duplicates :emacs:elisp:
+** TLDR
+#+begin_src elisp
+(advice-add 'yas-snippet-dirs :filter-return #'delete-dups)
+#+end_src
+
+** Background
+When searching [fn:1] for a way to override yasnippets in doom-emacs i found:
+
+#+begin_quote
+yas-snippet-dirs is a compiled function defined in yasnippet.el.
+
+Signature
+(yas-snippet-dirs)
+
+Documentation
+This function has :filter-return advice: delete-dups.
+
+Return variable yas-snippet-dirs as list of strings.
+#+end_quote
+
+The Interesting part being:
+
+#+begin_quote
+This function has :filter-return advice: delete-dups.
+#+end_quote
+
+Then looking through [[info:Elisp#Advising Functions][Elisp#Advising Functions]] gave the answer for adding it to
+any function
+#+begin_src elisp
+(advice-add 'yas-snippet-dirs :filter-return #'delete-dups)
+#+end_src
+
+** Footnotes
+
+[fn:1] =M-x counsel-describe-variable RET yas-snippet-dirs=
+* 23:54 Expand org source blocks with default headers :emacs:elisp:yas:
+=M-x yas-new-snippet=

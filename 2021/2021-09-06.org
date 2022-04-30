@@ -1,0 +1,401 @@
+#+TITLE: lunes 06 de septiembre 2021, semana 36
+
+* 00:19 Custom UI sobre cualquier pagina
+Por ejemplo viendo esta pagina
+https://www.javatips.net/api/android.bluetooth.ibluetooth, se presentan varios
+ejemplos de codigo, al igual que un header donde dan una descripcion de donde lo
+sacaron.
+
+Para no dar scroll en toda la pagina puedes buscar el elemento que compone al
+header, en este caso =td=.
+
+#+begin_src js
+document.querySelectorAll('td');
+#+end_src
+
+#+RESULTS:
+:results:
+▶ (17) [td, td, td, td, td, td, td, td, td, td, td, td, td, td, td, td, td]
+:end:
+
+Ver que traen dentro:
+#+begin_src js :wrap src js
+[...document.querySelectorAll('td')].map(td => td.textContent);
+#+end_src
+
+#+RESULTS:
+#+begin_src js
+(17) [
+  0: "Project: android-imf-ext-master  File: ShutdownThread.java View source code"
+  1: "Project: sawan-bar-master  File: BluetoothHeadsetService.java View source code"
+  2: "Project: cnAndroidDocs-master  File: BluetoothManagerService.java View source code"
+  3: "Project: android_packages_apps_Bluetooth-master  File: AdapterService.java View source code"
+  4: "Project: XobotOS-master  File: ShutdownThread.java View source code"
+  5: "Project: folio100_frameworks_base-master  File: ShutdownThread.java View source code"
+  6: "Project: legacy-patchrom-master  File: ShutdownThread.java View source code"
+  7: "Project: android-15-master  File: ShutdownThread.java View source code"
+  8: "Project: frameworks_base_disabled-master  File: ShutdownThread.java View source code"
+  9: "Project: android_packages_apps-master  File: BluetoothHeadsetService.java View source code"
+  10: "Project: Phone_gingerbread-master  File: BluetoothHeadsetService.java View source code"
+  11: "Project: SPD8810GA-master  File: BluetoothHeadsetService.java View source code"
+  12: "Project: property-db-master  File: BluetoothManagerService.java View source code"
+  13: "Project: 2.3.3-Phone-Merge-master  File: BluetoothHeadsetService.java View source code"
+  14: "Project: platform_frameworks_base-master  File: BluetoothManagerService.java View source code"
+  15: "Project: android_frameworks_base-master  File: BluetoothManagerService.java View source code"
+  16: "Project: android-sdk-sources-for-api-level-23-master  File: BluetoothManagerService.java View source code"
+  length: 17
+  [[Prototype]]: Array(0)
+]
+#+end_src
+
+Moviendonos al elemento 11
+#+begin_src js
+[...document.querySelectorAll('td')][11].scrollIntoView({block: "center", behavior: "smooth"})
+#+end_src
+
+** Referencias
+https://stackoverflow.com/questions/5007530/how-do-i-scroll-to-an-element-using-javascript
+https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+* 16:26 Menu de opciones global (chrome)
+Ofrecer configuraciones:
++ (Quitar) Smooth Scrolling
++ Busqueda de elementos
+* 18:40 Probando WebAssembly en Nix
+Los paquetes minimos con los que logre hacer funcionar fueron los siguientes:
+
+#+begin_src shell :session nix-shell
+nix-shell -p wabt llvmPackages_8.bintools-unwrapped llvmPackages_8.clang-unwrapped
+#+end_src
+
+#+RESULTS:
+:results:
+:end:
+
+Los paquetes proporcionan los siguientes binarios (lista no exhaustiva):
+#+NAME: nixpkgs-binaries-wasm
+|----------+----------------|
+| Paquete  | Binario        |
+|----------+----------------|
+| wabt     | wasm2wat       |
+|          | wasm-decompile |
+|----------+----------------|
+| bintools | wasm-ld        |
+|----------+----------------|
+| clang    | clang          |
+|----------+----------------|
+
+Para calcular el producto punto de un vector en =R3=:
+
+#+begin_src elisp
+(require 'ob-C)
+#+end_src
+
+#+RESULTS:
+:results:
+ob-C
+:end:
+
+#+name: dot.c
+#+begin_src c :tangle dot.c
+typedef struct { float x, y, z; } vec3;
+
+float dot(const vec3 *a, const vec3 *b) {
+    return a->x * b->x +
+           a->y * b->y +
+           a->z * b->z;
+}
+#+end_src
+
+#+RESULTS: dot.c
+:results:
+:end:
+
+Se compila:
+#+begin_src shell :session nix-shell
+clang --target=wasm32 dot.c -c
+#+end_src
+
+#+RESULTS:
+:results:
+:end:
+
+Esto nos genera un archivo =dot.o=
+#+begin_src shell
+file dot.o
+#+end_src
+
+#+RESULTS:
+:results:
+dot.o: WebAssembly (wasm) binary module version 0x1 (MVP)
+:end:
+
+Disassemble:
+#+begin_src shell :session nix-shell :wrap SRC lisp
+wasm2wat -f dot.o
+#+end_src
+
+#+RESULTS:
+#+begin_SRC lisp
+(module
+  (type (;0;) (func (param i32 i32) (result f32)))
+  (import "env" "__linear_memory" (memory (;0;) 0))
+  (import "env" "__indirect_function_table" (table (;0;) 0 funcref))
+  (import "env" "__stack_pointer" (global (;0;) (mut i32)))
+dot (type 0) (param i32 i32) (result f32)
+    (local i32 i32 i32 i32 f32 i32 f32 f32 i32 f32 i32 f32 f32 f32 i32 f32 i32 f32 f32 f32)
+    (local.set 2
+      (global.get 0))
+    (local.set 3
+      (i32.const 16))
+    (local.set 4
+      (i32.sub
+        (local.get 2)
+        (local.get 3)))
+    (i32.store offset=12
+      (local.get 4)
+      (local.get 0))
+    (i32.store offset=8
+      (local.get 4)
+      (local.get 1))
+    (local.set 5
+      (i32.load offset=12
+        (local.get 4)))
+    (local.set 6
+      (f32.load
+        (local.get 5)))
+    (local.set 7
+      (i32.load offset=8
+        (local.get 4)))
+    (local.set 8
+      (f32.load
+        (local.get 7)))
+    (local.set 9
+      (f32.mul
+        (local.get 6)
+        (local.get 8)))
+    (local.set 10
+      (i32.load offset=12
+        (local.get 4)))
+    (local.set 11
+      (f32.load offset=4
+        (local.get 10)))
+    (local.set 12
+      (i32.load offset=8
+        (local.get 4)))
+    (local.set 13
+      (f32.load offset=4
+        (local.get 12)))
+    (local.set 14
+      (f32.mul
+        (local.get 11)
+        (local.get 13)))
+    (local.set 15
+      (f32.add
+        (local.get 9)
+        (local.get 14)))
+    (local.set 16
+      (i32.load offset=12
+        (local.get 4)))
+    (local.set 17
+      (f32.load offset=8
+        (local.get 16)))
+    (local.set 18
+      (i32.load offset=8
+        (local.get 4)))
+    (local.set 19
+      (f32.load offset=8
+        (local.get 18)))
+    (local.set 20
+      (f32.mul
+        (local.get 17)
+        (local.get 19)))
+    (local.set 21
+      (f32.add
+        (local.get 15)
+        (local.get 20)))
+    (return
+      (local.get 21))))
+#+end_SRC
+
+Pero mejor optimizar (agresivamente) el codigo:
+#+begin_src shell :session nix-shell
+clang --target=wasm32 -O3 -flto -nostdlib -Wl,--no-entry -Wl,--export-all -Wl,--lto-O3 -o dot.wasm dot.c
+#+end_src
+
+#+RESULTS:
+:results:
+:end:
+
+#+begin_src shell :session nix-shell :wrap SRC lisp
+wasm2wat -f dot.wasm
+#+end_src
+
+#+RESULTS:
+#+begin_SRC lisp
+(module
+  (type (;0;) (func))
+  (type (;1;) (func (param i32 i32) (result f32)))
+__wasm_call_ctors (type 0))
+dot (type 1) (param i32 i32) (result f32)
+    (f32.add
+      (f32.add
+        (f32.mul
+          (f32.load
+            (local.get 0))
+          (f32.load
+            (local.get 1)))
+        (f32.mul
+          (f32.load offset=4
+            (local.get 0))
+          (f32.load offset=4
+            (local.get 1))))
+      (f32.mul
+        (f32.load offset=8
+          (local.get 0))
+        (f32.load offset=8
+          (local.get 1)))))
+  (table (;0;) 1 1 funcref)
+  (memory (;0;) 2)
+  (global (;0;) (mut i32) (i32.const 66560))
+  (global (;1;) i32 (i32.const 66560))
+  (global (;2;) i32 (i32.const 1024))
+  (global (;3;) i32 (i32.const 1024))
+  (export "memory" (memory 0))
+__wasm_call_ctors))
+  (export "__heap_base" (global 1))
+  (export "__data_end" (global 2))
+  (export "__dso_handle" (global 3))
+dot)))
+#+end_SRC
+
+** Referencias
+https://v8.dev/blog/wasm-decompile
+https://surma.dev/things/c-to-webassembly/
+https://aransentin.github.io/cwasm/
+https://rob-blackbourn.github.io/blog/webassembly/wasm/wasi/javascript/c/clang/wasi-sdk/marshalling/finalizer/finalizationregistry/2020/07/07/wasi-finalizers-1.html
+https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format
+* 22:05 Generar el CSS de ciertas fuentes
+#+begin_src elisp :wrap SRC html
+(letf (((symbol-function 'face-list) (lambda () '(font-lock-keyword-face)))
+       (org-html-htmlize-output-type 'css)
+       (org-html-htmlize-font-prefix ""))
+  (save-window-excursion
+    (org-html-htmlize-generate-css)
+    (with-current-buffer "*html*"
+      (buffer-string))))
+#+end_src
+
+#+RESULTS:
+#+begin_SRC html
+<style type="text/css">
+    <!--
+      body {
+        color: #bbc2cf;
+        background-color: #21242b;
+      }
+      .org-keyword {
+        /* font-lock-keyword-face */
+        color: #51afef;
+      }
+
+      a {
+        color: inherit;
+        background-color: inherit;
+        font: inherit;
+        text-decoration: inherit;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+</style>
+#+end_SRC
+
+** Generar el CSS de todas las fuentes usadas en el buffer actual
+Primero una funcion para obtener las fuentes
+#+begin_src elisp
+(defun faces-on (beg end)
+  "Collect all (unique) faces from `BEG' to `END'."
+  (let (words)
+    `(default .
+       ,(-non-nil (-flatten (save-excursion
+           (goto-char beg)
+           (save-restriction
+             (narrow-to-region beg end)
+             (while (setq match (text-property-search-forward 'face nil nil))
+               (pushnew (get-text-property (point) 'face)
+                        words :test #'equal)))
+           words))))))
+
+#+end_src
+
+#+RESULTS:
+:results:
+faces-on
+:end:
+
+#+begin_src elisp
+(defun org+-html-htmlize-generate-css ()
+  "Create the CSS for the fonts defined in the current buffer"
+  (letf* ((faces (faces-on (point-min) (point-max)))
+          ((symbol-function 'face-list) (lambda () (reverse faces)))
+          (org-html-htmlize-output-type 'css)
+          (org-html-htmlize-font-prefix ""))
+    (message "%S" (face-list))
+    (save-window-excursion
+      (org-html-htmlize-generate-css)
+      (with-current-buffer "*html*"
+        (buffer-string)))))
+#+end_src
+
+#+RESULTS:
+:results:
+org+-html-htmlize-generate-css
+:end:
+
+#+begin_src elisp :results file :file styles.css :output-dir /tmp/ox-html/
+(org+-html-htmlize-generate-css)
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:/tmp/ox-html/styles.css]]
+:end:
+
+* 22:28 Saving macros for future sessions
+By default, keyboard macros are not saved across sessions. To store the
+macro in your init-file for later use, do this:
+
+1. Name the macro:
+
+   M-x =name-last-kbd-macro= RET =org-set-export-file-name= RET
+
+2. Find your init-file and move to a spot where you would like to insert
+   the macro.
+
+3. Insert the macro:
+
+   M-x =insert-kbd-macro= RET =org-set-export-file-name= RET
+
+   Emacs will insert the following code at point:
+
+   #+begin_example
+     (fset 'org-set-export-file-name
+        "\C-c\C-xpCUSTOM_ID\C-m\C-m\C-c\C-f")
+   #+end_example
+
+   If you squint hard enough you can see that the second argument
+   to =fset= contains the sequence of keys that you pressed when you
+   recorded the macro :)
+
+4. (Optional) For best results, you might want to
+   bind =org-set-export-file-name= to a key:
+
+   #+begin_example
+     (define-key org-mode-map (kbd "<f6>") 'org-set-export-file-name)
+   #+end_example
+
+5. Save.
+
+** References
+https://emacs.stackexchange.com/questions/2259/how-to-export-top-level-headings-of-org-mode-buffer-to-separate-files

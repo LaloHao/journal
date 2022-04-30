@@ -1,0 +1,5 @@
+#+TITLE: 27 Aug 27 de 08mmm 2021
+* 06:40 Bibtex?
+v
+
+ [[~/lib/references.bib]]

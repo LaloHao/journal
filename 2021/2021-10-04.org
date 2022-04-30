@@ -1,0 +1,3 @@
+#+TITLE: lunes 04 de octubre 2021, semana 40
+* 01:34 PXE Server with TFTP
+https://www.youtube.com/watch?v=OuhFbr6gt44
