@@ -11,7 +11,7 @@
 :header-args:            :exports both
 :END:
 Inspecting =xmonad=
-#+begin_src bash
+#+begin_src bash :exports both
 which xmonad
 #+end_src
 
@@ -20,7 +20,7 @@ which xmonad
 
 I know it's in my profile..., but where?
 
-#+begin_src bash
+#+begin_src bash :exports both
 which xmonad | xargs readlink
 #+end_src
 
@@ -29,7 +29,7 @@ which xmonad | xargs readlink
 
 Ok..., installed by =home-manager=, but where is it?
 
-#+begin_src bash
+#+begin_src bash :exports both
 which xmonad | xargs readlink | xargs readlink
 #+end_src
 
@@ -38,7 +38,7 @@ which xmonad | xargs readlink | xargs readlink
 
 ^ Save that path, you can see it's actually pointing to the =xmonad= binary:
 
-#+begin_src bash
+#+begin_src bash :exports both
 file /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xmonad
 #+end_src
 
@@ -46,7 +46,7 @@ file /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xm
 : /nix/store/g7f0v21jmi9smh1q1f6fw050r76nzb1p-ghc-8.10.6-with-packages/bin/xmonad: symbolic link to /nix/store/0lxxi3hrs49fiil29xw6gjx09ad3nf2n-xmonad-0.15/bin/xmonad
 
 Now enter the monad (with packages):
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 nix-shell -p xmonad-with-packages
 #+end_src
 
@@ -56,7 +56,7 @@ nix-shell -p xmonad-with-packages
 For starters, the derivation is pointing elsewhere, not to my home-environment,
 but directly to the nix-store:
 
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 which xmonad
 #+end_src
 
@@ -65,7 +65,7 @@ which xmonad
 :  03:00:50 
 
 And we now see not a binary file but a bash script
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 file /nix/store/6n1wh9ky7ydbd2ii5877nly9xbrqz4m9-xmonad-with-packages-8.10.6/bin/xmonad
 #+end_src
 
@@ -75,7 +75,7 @@ file /nix/store/6n1wh9ky7ydbd2ii5877nly9xbrqz4m9-xmonad-with-packages-8.10.6/bin
 
 And if you look at the contents, you'll see that it's actually using the same
 xmonad from above, except it adds all the `extraPackages` locations for us:
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 which xmonad | xargs cat
 #+end_src
 
@@ -88,7 +88,7 @@ which xmonad | xargs cat
 :  03:10:55 
 
 Let's compile
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 xmonad --recompile
 #+end_src
 
@@ -98,7 +98,7 @@ xmonad --recompile
 :  03:12:03 
 
 But out of our safe space instead
-#+begin_src bash :session pure :results output
+#+begin_src bash :session pure :results output :exports both
 exit
 #+end_src
 
@@ -106,7 +106,7 @@ exit
 :
 :  03:12:09 
 
-#+begin_src bash :results output
+#+begin_src bash :results output :exports both :exports both
 xmonad --recompile 2>&1
 #+end_src
 

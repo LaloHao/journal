@@ -52,7 +52,7 @@ classes = ('plane', 'car', 'bird', 'cat',
 : Files already downloaded and verified
 
 Let us show some of the training images, for fun
-#+begin_src python :results output drawer
+#+begin_src python :results output drawer :exports both
 import matplotlib.pyplot as plt
 import numpy as np
 

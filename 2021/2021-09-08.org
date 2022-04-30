@@ -2,7 +2,7 @@
 
 * 01:50 Graphviz/Diagramas en org mode
 
-#+begin_src dot :file flowcharts-in-graphviz.png :cmdline -Kdot -Tpng
+#+begin_src dot :file flowcharts-in-graphviz.png :cmdline -Kdot -Tpng :exports both
 digraph G {
   node [fontname = "Handlee"];
   edge [fontname = "Handlee"];
@@ -33,7 +33,7 @@ https://sketchviz.com/flowcharts-in-graphviz
 https://github.com/ppareit/graphviz-dot-mode
 https://joy.pm/post/2017-09-17-a_graphviz_primer/
 * 02:43 Graphviz haciendola de pedo
-#+begin_src dot :cmdline -Kdot -Tpng :file constraint-true.png
+#+begin_src dot :cmdline -Kdot -Tpng :file constraint-true.png :exports both
 digraph G {
   a -> c;
   a -> b;
@@ -46,7 +46,7 @@ digraph G {
 [[file:constraint-true.png]]
 :end:
 
-#+begin_src dot :cmdline -Kdot -Tpng :file constraint-false.png
+#+begin_src dot :cmdline -Kdot -Tpng :file constraint-false.png :exports both
 digraph G {
   a -> c;
   a -> b;
@@ -59,7 +59,7 @@ digraph G {
 [[file:constraint-false.png]]
 :end:
 * 03:29 Graphviz Tree of life
-#+begin_src dot :file tree-of-life.png :cmdline -Kdot -Tpng
+#+begin_src dot :file tree-of-life.png :cmdline -Kdot -Tpng :exports both
 digraph {
   edge[arrowhead=none]
   node[width=1,height=1]
