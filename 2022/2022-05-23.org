@@ -1,0 +1,25 @@
+#+TITLE: Lunes 23 de Mayo 2022, semana 21
+* 10:42 Firmar un PDF
+Podemos empezar por crear una firma en algun programa de edicion de imagenes, en
+este caso usaremos [[https://www.gimp.org/][GIMP]].
+
+[[file:figures/the-gimp.png]]
+
+Usa el Paintbrush tool (P) y ajusta la dinamica del pincel para que sea mas
+suave dibujar con el mouse, puedes utilizar la configuracion como aparece en la
+imagen a continuacion o variar los parametros Size (tamaño), Quality (calidad) y
+Weight (peso) de acuerdo a tus preferencias.
+
+[[file:figures/gimp-brush-dinamycs-for-signing-documents.png]]
+
+Cuando termines exporta (Ctrl+E) la firma/imagen como archivo =png=.
+
+Despues usaremos Xournal y agregaremos la firma con la herramienta =Image=, dar
+click en cualquier lugar del documento para insertar la firma, despues podras
+cambiar el tamaño desde las orillas de la imagen (firma) usando la herramienta
+=Select rectangle= y dando click sobre ella.
+
+[[file:figures/xournal-signing-document.png]]
+
+Para finalizar exporta (Ctrl+E) en =File->Export to PDF= o imprime (Ctrl+P) el
+documento.
